@@ -150,6 +150,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="relative min-h-screen overflow-x-hidden bg-aurora text-foreground">
         <NavBar />
+        <OfflineBanner />
         <Outlet />
       </div>
     </QueryClientProvider>

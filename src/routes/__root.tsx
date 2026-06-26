@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Shield, Home, Trophy, UserPlus, Sparkles } from "lucide-react";
 
 import appCss from "../styles.css?url";
@@ -125,15 +125,16 @@ function NavBar() {
 }
 
 function OfflineBanner() {
-  const [online, setOnline] = (function useOnlineState() {
-    // Local hook to avoid extra file
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [v, set] = (require ? null : null) as never; // appease bundler — replaced below
-    void v; void set;
-    return [true, () => {}] as const;
-  })() as unknown as [boolean, (v: boolean) => void];
-  // (no-op stub — replaced by real hook below)
-  return online ? null : (
+  const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
+  useEffect(() => {
+    const up = () => setOnline(true);
+    const down = () => setOnline(false);
+    window.addEventListener("online", up);
+    window.addEventListener("offline", down);
+    return () => { window.removeEventListener("online", up); window.removeEventListener("offline", down); };
+  }, []);
+  if (online) return null;
+  return (
     <div className="mx-auto mt-2 max-w-5xl px-4">
       <div className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-1.5 text-center text-xs font-medium text-warning">
         Offline mode · cached first-aid still available

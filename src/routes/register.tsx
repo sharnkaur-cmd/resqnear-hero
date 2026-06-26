@@ -12,7 +12,7 @@ export const Route = createFileRoute("/register")({
   component: RegisterPage,
 });
 
-const SKILLS = ["Doctor", "Nurse", "CPR Trained", "Paramedic", "Ex-Military", "First Aider"];
+const SKILLS = ["Doctor", "Nurse", "CPR Trained", "Paramedic", "Ex-Military", "First Aider", "General Helper"];
 
 function Confetti() {
   const pieces = Array.from({ length: 70 });
@@ -58,7 +58,7 @@ function RegisterPage() {
   return (
     <main className="mx-auto max-w-xl px-5 pb-20 pt-8">
       <header className="text-center">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-sos shadow-glow-red">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-blue-violet shadow-glow-blue">
           <Heart className="h-7 w-7 text-white" />
         </div>
         <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -104,7 +104,7 @@ function RegisterPage() {
           </button>
         </label>
 
-        <button type="submit" className="w-full rounded-2xl bg-gradient-sos px-5 py-4 text-base font-extrabold uppercase tracking-[0.22em] text-white shadow-glow-red transition hover:scale-[1.01] active:scale-[0.98]">
+        <button type="submit" className="w-full rounded-2xl bg-gradient-blue-violet px-5 py-4 text-base font-extrabold uppercase tracking-[0.22em] text-white shadow-glow-blue transition hover:scale-[1.01] active:scale-[0.98]">
           Become a Hero
         </button>
       </form>

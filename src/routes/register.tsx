@@ -15,8 +15,8 @@ export const Route = createFileRoute("/register")({
 const SKILLS = ["Doctor", "Nurse", "CPR Trained", "Paramedic", "Ex-Military", "First Aider"];
 
 function Confetti() {
-  const pieces = Array.from({ length: 60 });
-  const colors = ["#CC0000", "#00A86B", "#facc15", "#3b82f6", "#a855f7"];
+  const pieces = Array.from({ length: 70 });
+  const colors = ["#E94560", "#FF2D55", "#00D4AA", "#FFB830", "#4CC9F0", "#f093fb", "#764ba2"];
   return (
     <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
       {pieces.map((_, i) => {
@@ -56,16 +56,18 @@ function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-5 pb-16 pt-8">
+    <main className="mx-auto max-w-xl px-5 pb-20 pt-8">
       <header className="text-center">
-        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary shadow-glow">
-          <Heart className="h-6 w-6 text-primary-foreground" />
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-sos shadow-glow-red">
+          <Heart className="h-7 w-7 text-white" />
         </div>
-        <h1 className="mt-4 text-3xl font-extrabold sm:text-4xl">Join 247 Heroes saving lives</h1>
+        <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+          Join <span className="text-gradient-primary">247 Heroes</span> saving lives
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">Three minutes today. A lifetime for someone tomorrow.</p>
       </header>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4 rounded-2xl border border-border/60 bg-card p-6 shadow-card-soft">
+      <form onSubmit={onSubmit} className="mt-8 space-y-4 rounded-3xl glass-card p-6">
         <Field label="Full Name">
           <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Priya Sharma" className={inputCls} />
         </Field>
@@ -74,7 +76,7 @@ function RegisterPage() {
         </Field>
         <Field label="Skill">
           <select value={form.skill} onChange={(e) => setForm({ ...form, skill: e.target.value })} className={inputCls}>
-            {SKILLS.map((s) => <option key={s} value={s}>{s}</option>)}
+            {SKILLS.map((s) => <option key={s} value={s} className="bg-[#16213E]">{s}</option>)}
           </select>
         </Field>
         <div className="grid grid-cols-2 gap-4">
@@ -86,7 +88,7 @@ function RegisterPage() {
           </Field>
         </div>
 
-        <label className="flex items-center justify-between rounded-xl border border-border/60 bg-background/50 px-4 py-3">
+        <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
           <div>
             <div className="text-sm font-semibold">Available right now</div>
             <div className="text-xs text-muted-foreground">Receive nearby SOS alerts</div>
@@ -96,13 +98,13 @@ function RegisterPage() {
             role="switch"
             aria-checked={form.available}
             onClick={() => setForm({ ...form, available: !form.available })}
-            className={`relative h-7 w-12 rounded-full transition ${form.available ? "bg-success" : "bg-muted"}`}
+            className={`relative h-7 w-12 rounded-full transition ${form.available ? "bg-success shadow-glow-green" : "bg-white/15"}`}
           >
             <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${form.available ? "left-[22px]" : "left-0.5"}`} />
           </button>
         </label>
 
-        <button type="submit" className="w-full rounded-xl bg-primary px-5 py-4 text-base font-bold uppercase tracking-widest text-primary-foreground shadow-glow transition active:scale-[0.98]">
+        <button type="submit" className="w-full rounded-2xl bg-gradient-sos px-5 py-4 text-base font-extrabold uppercase tracking-[0.22em] text-white shadow-glow-red transition hover:scale-[1.01] active:scale-[0.98]">
           Become a Hero
         </button>
       </form>
@@ -110,12 +112,12 @@ function RegisterPage() {
       {submitted && (
         <>
           <Confetti />
-          <div className="animate-fade-up fixed inset-x-0 bottom-6 z-50 mx-auto w-[92%] max-w-md rounded-2xl bg-success p-4 text-success-foreground shadow-glow">
+          <div className="animate-fade-up fixed inset-x-0 bottom-6 z-50 mx-auto w-[92%] max-w-md rounded-2xl bg-success p-4 text-[#0F0F1A] shadow-glow-green">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="h-6 w-6" />
               <div>
-                <div className="font-bold">You're a Hero now 🎉</div>
-                <div className="text-xs opacity-90">We'll alert you when someone nearby needs help.</div>
+                <div className="font-extrabold">You're a Hero now 🎉</div>
+                <div className="text-xs opacity-80">We'll alert you when someone nearby needs help.</div>
               </div>
             </div>
           </div>
@@ -126,12 +128,12 @@ function RegisterPage() {
 }
 
 const inputCls =
-  "w-full rounded-xl border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none ring-primary/40 transition focus:ring-2";
+  "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-muted-foreground outline-none transition focus:border-white/30 focus:ring-2 focus:ring-[#E94560]/40";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">{label}</span>
       {children}
     </label>
   );

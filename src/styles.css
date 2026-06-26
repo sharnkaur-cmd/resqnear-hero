@@ -159,19 +159,36 @@
 @utility bg-gradient-primary { background: var(--gradient-primary); }
 @utility bg-gradient-violet { background: var(--gradient-violet); }
 @utility bg-gradient-pink { background: var(--gradient-pink); }
+@utility bg-gradient-blue { background: var(--gradient-blue); }
+@utility bg-gradient-blue-violet { background: var(--gradient-blue-violet); }
+@utility bg-gradient-teal { background: var(--gradient-teal); }
+@utility bg-gradient-gold { background: var(--gradient-gold); }
 @utility bg-gradient-sos { background: var(--gradient-sos); }
 @utility shadow-glow-red { box-shadow: var(--shadow-glow-red); }
 @utility shadow-glow-green { box-shadow: var(--shadow-glow-green); }
 @utility shadow-glow-violet { box-shadow: var(--shadow-glow-violet); }
+@utility shadow-glow-blue { box-shadow: var(--shadow-glow-blue); }
 
 @utility text-gradient-primary {
-  background: var(--gradient-primary);
+  background: var(--gradient-blue-violet);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 @utility text-gradient-violet {
   background: var(--gradient-violet);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+@utility text-gradient-blue {
+  background: var(--gradient-blue);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+@utility text-gradient-sos {
+  background: var(--gradient-sos);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;

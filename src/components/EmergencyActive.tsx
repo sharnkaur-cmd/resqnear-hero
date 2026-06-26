@@ -1,9 +1,17 @@
-import { useEffect, useState } from "react";
-import { Phone, X, MapPin, Clock, Activity, ShieldAlert } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { Phone, X, MapPin, Clock, Activity, ShieldAlert, Cpu, Loader2 } from "lucide-react";
 import type { AidCategory } from "@/lib/first-aid";
-import { HEROES } from "@/lib/heroes";
+import { pickRandomHero, type Hero } from "@/lib/heroes";
+import { HeroMap } from "@/components/HeroMap";
+import { analyzeEmergency, type EmergencyAnalysis } from "@/lib/ai.functions";
 
-type Props = { category: AidCategory; onClose: () => void };
+type Props = {
+  category: AidCategory;
+  onClose: () => void;
+  userLat?: number;
+  userLon?: number;
+};
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -11,21 +19,41 @@ function formatTime(s: number) {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
-export function EmergencyActive({ category, onClose }: Props) {
+const SEVERITY_TINT: Record<string, string> = {
+  Critical: "bg-gradient-sos text-white",
+  High: "bg-gradient-pink text-white",
+  Medium: "bg-gradient-blue text-white",
+  Low: "bg-gradient-teal text-[#0F0F1A]",
+};
+
+export function EmergencyActive({ category, onClose, userLat, userLon }: Props) {
   const [seconds, setSeconds] = useState(300);
-  const hero = HEROES[0];
+  const heroRef = useRef<Hero>(useMemo(() => pickRandomHero(), []));
+  const hero = heroRef.current;
+  const [analysis, setAnalysis] = useState<EmergencyAnalysis | null>(null);
+  const [loadingAi, setLoadingAi] = useState(true);
+  const analyze = useServerFn(analyzeEmergency);
 
   useEffect(() => {
     const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingAi(true);
+    analyze({ data: { type: category.title, location: hero.area + ", Bengaluru" } })
+      .then((r) => { if (!cancelled) { setAnalysis(r); setLoadingAi(false); } })
+      .catch(() => { if (!cancelled) setLoadingAi(false); });
+    return () => { cancelled = true; };
+  }, [analyze, category.title, hero.area]);
+
+  const steps = analysis?.firstAidSteps ?? category.steps;
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0F0F1A] text-white">
-      {/* dramatic red flash backdrop */}
       <div className="pointer-events-none absolute inset-0 animate-red-flash" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(233,69,96,0.45),transparent_60%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(255,45,85,0.35),transparent_60%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(233,69,96,0.35),transparent_60%)]" />
 
       <div className="relative mx-auto max-w-2xl px-5 py-6">
         <div className="flex items-center justify-between">
@@ -38,11 +66,11 @@ export function EmergencyActive({ category, onClose }: Props) {
           </button>
         </div>
 
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-sos shadow-glow-red">
             <ShieldAlert className="h-7 w-7 text-white" />
           </div>
-          <h1 className="mt-4 animate-pulse-soft text-3xl font-extrabold tracking-tight text-gradient-primary sm:text-4xl">
+          <h1 className="mt-4 animate-pulse-soft text-3xl font-extrabold tracking-tight text-gradient-sos sm:text-4xl">
             EMERGENCY ACTIVE
           </h1>
           <p className="mt-1 text-sm text-white/80">
@@ -50,30 +78,74 @@ export function EmergencyActive({ category, onClose }: Props) {
           </p>
         </div>
 
-        {/* Hero card */}
-        <div className="mt-6 overflow-hidden rounded-3xl glass-card p-5">
+        {/* AI Analysis */}
+        <div className="mt-6 rounded-3xl glass-card p-5">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-info">Nearest Hero Matched</p>
-            <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-success">Top Hero</span>
+            <div className="flex items-center gap-2">
+              <Cpu className="h-4 w-4 text-[#4cc9f0]" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">AI Triage · Gemini</p>
+            </div>
+            {loadingAi ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Analysing
+              </span>
+            ) : analysis ? (
+              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${SEVERITY_TINT[analysis.severity] ?? "bg-gradient-blue text-white"}`}>
+                {analysis.severity}
+              </span>
+            ) : null}
+          </div>
+          <div className="mt-3 flex items-end gap-3">
+            <div className="font-mono text-5xl font-extrabold tabular-nums text-gradient-blue">
+              {analysis?.severityScore ?? 0}%
+            </div>
+            <div className="pb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              {analysis?.urgency ?? "Calculating"} · {analysis?.heroSkillNeeded ?? "Matching skill"}
+            </div>
+          </div>
+          <div className="relative mt-2 h-2 w-full overflow-hidden rounded-full bg-white/5">
+            <div
+              className="h-full bg-gradient-to-r from-[#00d4aa] via-[#4361ee] to-[#7209b7] transition-all duration-500"
+              style={{ width: `${analysis?.severityScore ?? 6}%` }}
+            />
+          </div>
+          {analysis?.recommendedAction && (
+            <p className="mt-3 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-relaxed text-white/90">
+              <span className="font-bold text-gradient-blue">Recommended: </span>
+              {analysis.recommendedAction}
+            </p>
+          )}
+        </div>
+
+        {/* Map */}
+        <div className="mt-4">
+          <HeroMap userLat={userLat} userLon={userLon} hero={hero} />
+        </div>
+
+        {/* Hero card — blue/violet gradient (no red) */}
+        <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-blue-violet p-5 text-white shadow-glow-blue">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">Nearest Hero Matched</p>
+            <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">Top Hero</span>
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
             <div className="min-w-0">
               <p className="truncate text-xl font-extrabold">{hero.name}</p>
-              <p className="text-sm text-white/80">{hero.skill}</p>
-              <p className="mt-1 flex items-center gap-1 text-sm text-white/70">
+              <p className="text-sm text-white/85">{hero.skill}</p>
+              <p className="mt-1 flex items-center gap-1 text-sm text-white/80">
                 <MapPin className="h-3.5 w-3.5" /> {hero.distanceM} m away · {hero.area}
               </p>
             </div>
-            <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-2xl font-black text-white shadow-glow-red">
+            <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 text-2xl font-black text-white backdrop-blur">
               {hero.name.split(" ").slice(-1)[0][0]}
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10">
-            <div className="flex items-center gap-2 text-sm text-white/80">
+          <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15">
+            <div className="flex items-center gap-2 text-sm text-white/90">
               <Clock className="h-4 w-4" /> ETA countdown
             </div>
-            <div className="font-mono text-2xl font-bold tabular-nums text-gradient-primary">{formatTime(seconds)}</div>
+            <div className="font-mono text-2xl font-bold tabular-nums text-white">{formatTime(seconds)}</div>
           </div>
 
           <a
@@ -87,16 +159,16 @@ export function EmergencyActive({ category, onClose }: Props) {
         {/* First aid steps */}
         <div className="mt-6">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-white/85">
-            <Activity className="h-4 w-4 text-[#FF2D55]" /> AI First-Aid Guidance
+            <Activity className="h-4 w-4 text-[#4cc9f0]" /> AI First-Aid Guidance
           </div>
           <ol className="mt-3 space-y-2">
-            {category.steps.map((step, i) => (
+            {steps.map((step, i) => (
               <li
                 key={i}
                 className="animate-fade-up grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl glass-card p-4"
                 style={{ animationDelay: `${i * 80}ms` }}
               >
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-primary text-sm font-bold text-white">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-blue-violet text-sm font-bold text-white">
                   {i + 1}
                 </div>
                 <p className="text-sm leading-relaxed text-white/95">{step}</p>
@@ -107,7 +179,7 @@ export function EmergencyActive({ category, onClose }: Props) {
 
         <div className="mt-6 mb-4 flex items-center justify-center gap-2 rounded-full glass px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white/85">
           <span className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-[#FF2D55]" />
-          Also alerting 112
+          Also alerting 112 · Indian emergency services
         </div>
       </div>
     </div>

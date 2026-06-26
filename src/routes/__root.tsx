@@ -92,7 +92,7 @@ function NavBar() {
   const activeProps = {
     className:
       baseLink +
-      " text-white before:absolute before:inset-0 before:-z-10 before:rounded-xl before:bg-gradient-primary before:opacity-90 before:shadow-glow-red",
+      " text-white before:absolute before:inset-0 before:-z-10 before:rounded-xl before:bg-gradient-blue-violet before:opacity-90 before:shadow-glow-blue",
   };
   return (
     <header className="sticky top-0 z-40">

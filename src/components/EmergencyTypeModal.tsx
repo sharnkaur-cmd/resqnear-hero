@@ -4,7 +4,7 @@ import { AID_CATEGORIES, type AidCategory } from "@/lib/first-aid";
 type Props = { onSelect: (c: AidCategory) => void; onClose: () => void };
 
 const GRADIENTS: Record<string, string> = {
-  cardiac: "bg-[linear-gradient(135deg,#E94560,#FF2D55)]",
+  cardiac: "bg-[linear-gradient(135deg,#764ba2,#f093fb)]",
   fire: "bg-[linear-gradient(135deg,#FF6B35,#F7931E)]",
   accident: "bg-[linear-gradient(135deg,#FFB830,#FF8C00)]",
   medical: "bg-[linear-gradient(135deg,#4CC9F0,#4361EE)]",
@@ -18,7 +18,7 @@ export function EmergencyTypeModal({ onSelect, onClose }: Props) {
       <div className="animate-fade-up w-full max-w-lg overflow-hidden rounded-t-3xl glass-card p-6 sm:rounded-3xl">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gradient-primary">SOS Activated</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gradient-sos">SOS Activated</p>
             <h2 className="mt-1.5 text-2xl font-extrabold tracking-tight">What is the emergency?</h2>
             <p className="mt-1 text-sm text-muted-foreground">Tap to alert the nearest trained hero.</p>
           </div>

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/first-aid")({
 });
 
 const GRADIENTS: Record<string, string> = {
-  cardiac: "bg-[linear-gradient(135deg,#E94560,#FF2D55)]",
+  cardiac: "bg-[linear-gradient(135deg,#764ba2,#f093fb)]",
   fire: "bg-[linear-gradient(135deg,#FF6B35,#F7931E)]",
   accident: "bg-[linear-gradient(135deg,#FFB830,#FF8C00)]",
   medical: "bg-[linear-gradient(135deg,#4CC9F0,#4361EE)]",
@@ -68,7 +68,7 @@ function FirstAidPage() {
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Step-by-step</p>
             <h2 className="truncate text-xl font-extrabold">{active.emoji} {active.title}</h2>
           </div>
-          <button onClick={toggleSpeak} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-primary px-4 py-2.5 text-sm font-bold text-white shadow-glow-red">
+          <button onClick={toggleSpeak} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-blue-violet px-4 py-2.5 text-sm font-bold text-white shadow-glow-blue">
             {speaking ? <><Square className="h-4 w-4" /> Stop</> : <><Volume2 className="h-4 w-4" /> Read Aloud</>}
           </button>
         </div>
@@ -76,7 +76,7 @@ function FirstAidPage() {
         <ol className="mt-4 space-y-2">
           {active.steps.map((s, i) => (
             <li key={i} className="animate-fade-up grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4" style={{ animationDelay: `${i * 70}ms` }}>
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-primary text-sm font-bold text-white">{i + 1}</div>
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-blue-violet text-sm font-bold text-white">{i + 1}</div>
               <p className="text-sm leading-relaxed">{s}</p>
             </li>
           ))}
@@ -88,7 +88,7 @@ function FirstAidPage() {
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {EMERGENCY_NUMBERS.map((n) => (
             <a key={n.code} href={`tel:${n.code}`} className="group rounded-2xl glass-card p-4 text-center transition hover:-translate-y-0.5 hover:border-white/20">
-              <Phone className="mx-auto h-4 w-4 text-[#FF2D55]" />
+              <Phone className="mx-auto h-4 w-4 text-[#4cc9f0]" />
               <div className="mt-1 text-3xl font-extrabold tracking-tight text-gradient-primary">{n.code}</div>
               <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{n.label}</div>
             </a>

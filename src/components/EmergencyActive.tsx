@@ -5,6 +5,7 @@ import type { AidCategory } from "@/lib/first-aid";
 import { pickRandomHero, type Hero } from "@/lib/heroes";
 import { HeroMap } from "@/components/HeroMap";
 import { analyzeEmergency, type EmergencyAnalysis } from "@/lib/ai.functions";
+import { saveEmergency } from "@/lib/supabase";
 
 type Props = {
   category: AidCategory;
@@ -43,10 +44,23 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
     let cancelled = false;
     setLoadingAi(true);
     analyze({ data: { type: category.title, location: hero.area + ", Bengaluru" } })
-      .then((r) => { if (!cancelled) { setAnalysis(r); setLoadingAi(false); } })
+      .then((r) => {
+        if (cancelled) return;
+        setAnalysis(r);
+        setLoadingAi(false);
+        // Log the emergency event (non-blocking)
+        saveEmergency({
+          type: category.title,
+          lat: userLat ?? null,
+          lon: userLon ?? null,
+          hero_name: hero.name,
+          severity: r.severity,
+          severity_score: r.severityScore,
+        }).catch(() => {});
+      })
       .catch(() => { if (!cancelled) setLoadingAi(false); });
     return () => { cancelled = true; };
-  }, [analyze, category.title, hero.area]);
+  }, [analyze, category.title, hero.area, hero.name, userLat, userLon]);
 
   const steps = analysis?.firstAidSteps ?? category.steps;
 

@@ -32,6 +32,11 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
   const [seconds, setSeconds] = useState(300);
   const heroRef = useRef<Hero>(useMemo(() => pickRandomHero(), []));
   const hero = heroRef.current;
+  const nearby = useMemo(
+    () => buildNearbyHeroes(userLat ?? 12.9352, userLon ?? 77.6245, hero, 5),
+    [userLat, userLon, hero],
+  );
+  const matched = nearby[0];
   const [analysis, setAnalysis] = useState<EmergencyAnalysis | null>(null);
   const [loadingAi, setLoadingAi] = useState(true);
   const analyze = useServerFn(analyzeEmergency);

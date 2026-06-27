@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Heart, CheckCircle2 } from "lucide-react";
+import { Heart, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { saveHero } from "@/lib/supabase";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -45,14 +46,28 @@ function Confetti() {
 
 function RegisterPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "", phone: "", skill: "Doctor", locality: "", pincode: "", available: true,
   });
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4500);
+    setSaving(true);
+    setError(null);
+    try {
+      const { error: dbError } = await saveHero(form);
+      if (dbError) throw dbError;
+      setSubmitted(true);
+      setForm({ name: "", phone: "", skill: "Doctor", locality: "", pincode: "", available: true });
+      setTimeout(() => setSubmitted(false), 4500);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not save right now.";
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -104,9 +119,15 @@ function RegisterPage() {
           </button>
         </label>
 
-        <button type="submit" className="w-full rounded-2xl bg-gradient-blue-violet px-5 py-4 text-base font-extrabold uppercase tracking-[0.22em] text-white shadow-glow-blue transition hover:scale-[1.01] active:scale-[0.98]">
-          Become a Hero
+        <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-blue-violet px-5 py-4 text-base font-extrabold uppercase tracking-[0.22em] text-white shadow-glow-blue transition hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70">
+          {saving ? <><Loader2 className="h-5 w-5 animate-spin" /> Saving…</> : "Become a Hero"}
         </button>
+        {error && (
+          <div className="flex items-start gap-2 rounded-xl border border-[#E94560]/40 bg-[#E94560]/10 p-3 text-xs text-white/90">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#FF2D55]" />
+            <span>{error}</span>
+          </div>
+        )}
       </form>
 
       {submitted && (

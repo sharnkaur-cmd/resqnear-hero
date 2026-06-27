@@ -116,7 +116,7 @@ npm run dev
 ## 🎯 Hackathon
 
 Built for **Vibe 2 Ship Hackathon**
-Theme: Last Minute Life Saver + Community Hero
+Theme: Community Hero Hyperlocal Problem Solver
 
 ---
 

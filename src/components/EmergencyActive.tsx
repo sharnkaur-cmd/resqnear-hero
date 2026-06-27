@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Phone, X, MapPin, Clock, Activity, ShieldAlert, Cpu, Loader2 } from "lucide-react";
+import { Phone, X, MapPin, Clock, Activity, ShieldAlert, Cpu, Loader2, Navigation } from "lucide-react";
 import type { AidCategory } from "@/lib/first-aid";
 import { pickRandomHero, type Hero } from "@/lib/heroes";
 import { HeroMap } from "@/components/HeroMap";
 import { analyzeEmergency, type EmergencyAnalysis } from "@/lib/ai.functions";
 import { saveEmergency } from "@/lib/supabase";
+import { buildNearbyHeroes } from "@/lib/nearby";
 
 type Props = {
   category: AidCategory;
@@ -31,6 +32,11 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
   const [seconds, setSeconds] = useState(300);
   const heroRef = useRef<Hero>(useMemo(() => pickRandomHero(), []));
   const hero = heroRef.current;
+  const nearby = useMemo(
+    () => buildNearbyHeroes(userLat ?? 12.9352, userLon ?? 77.6245, hero, 5),
+    [userLat, userLon, hero],
+  );
+  const matched = nearby[0];
   const [analysis, setAnalysis] = useState<EmergencyAnalysis | null>(null);
   const [loadingAi, setLoadingAi] = useState(true);
   const analyze = useServerFn(analyzeEmergency);
@@ -131,12 +137,46 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
           )}
         </div>
 
-        {/* Map */}
+        {/* Live Map — fullscreen-feel */}
         <div className="mt-4">
-          <HeroMap userLat={userLat} userLon={userLon} hero={hero} />
+          <HeroMap userLat={userLat} userLon={userLon} hero={hero} nearby={nearby} className="h-[420px]" />
         </div>
 
-        {/* Hero card — blue/violet gradient (no red) */}
+        {/* Nearby heroes list with distance + ETA */}
+        <div className="mt-4 rounded-3xl glass-card p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+              {nearby.length} Heroes Nearby
+            </p>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-success">Live</span>
+          </div>
+          <ul className="mt-3 space-y-2">
+            {nearby.map((h, i) => (
+              <li
+                key={h.name}
+                className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 ${
+                  i === 0 ? "border-[#7209b7]/60 bg-gradient-blue-violet/20" : "border-white/10 bg-white/[0.04]"
+                }`}
+              >
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${i === 0 ? "bg-[#a78bfa]" : "bg-[#4361ee]"}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-white">{h.name}</p>
+                  <p className="truncate text-[11px] text-white/70">{h.skill} · {h.area}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="flex items-center justify-end gap-1 text-xs font-bold text-white">
+                    <Navigation className="h-3 w-3" /> {h.distanceKm.toFixed(2)} km
+                  </p>
+                  <p className="flex items-center justify-end gap-1 text-[11px] text-white/70">
+                    <Clock className="h-3 w-3" /> {h.etaMin} min ETA
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Matched hero card — blue/violet gradient (no red) */}
         <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-blue-violet p-5 text-white shadow-glow-blue">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">Nearest Hero Matched</p>
@@ -144,10 +184,10 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
             <div className="min-w-0">
-              <p className="truncate text-xl font-extrabold">{hero.name}</p>
-              <p className="text-sm text-white/85">{hero.skill}</p>
+              <p className="truncate text-xl font-extrabold">{matched.name}</p>
+              <p className="text-sm text-white/85">{matched.skill}</p>
               <p className="mt-1 flex items-center gap-1 text-sm text-white/80">
-                <MapPin className="h-3.5 w-3.5" /> {hero.distanceM} m away · {hero.area}
+                <MapPin className="h-3.5 w-3.5" /> {matched.distanceKm.toFixed(2)} km · ETA {matched.etaMin} min · {matched.area}
               </p>
             </div>
             <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 text-2xl font-black text-white backdrop-blur">

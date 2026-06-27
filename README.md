@@ -89,6 +89,44 @@ emergencies table:
 
 ## ⚙️ Environment Variables
 
+---
+
+## 🚀 Run Locally
+
+```bash
+git clone https://github.com/sharnkaur-cmd/ResQNear
+cd ResQNear
+npm install
+npm run dev
+```
+
+---
+
+## 🇮🇳 Emergency Numbers
+
+| Number | Service |
+|--------|---------|
+| 112 | All Emergencies |
+| 108 | Ambulance |
+| 101 | Fire |
+| 100 | Police |
+
+---
+
+## 🎯 Hackathon
+
+Built for **Vibe 2 Ship Hackathon**
+Theme: Last Minute Life Saver + Community Hero
+
+---
+
+## 🌟 Vision
+
+ResQNear turns every Indian colony into a
+safety network powered by community heroes.
+Every trained person becomes a last-minute
+life saver for their neighborhood.
+
 
 
 ## 🌐 Live URL

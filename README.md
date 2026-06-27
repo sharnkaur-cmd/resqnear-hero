@@ -130,8 +130,7 @@ life saver for their neighborhood.
 
 
 ## 🌐 Live URL
-
-> _Add your published URL here once deployed._
+         https://resqnear-hyperlocal-problem-solver.vercel.app
 
 ---
 

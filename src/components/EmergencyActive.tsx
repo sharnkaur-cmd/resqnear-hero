@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Phone, X, MapPin, Clock, Activity, ShieldAlert, Cpu, Loader2 } from "lucide-react";
+import { Phone, X, MapPin, Clock, Activity, ShieldAlert, Cpu, Loader2, Navigation } from "lucide-react";
 import type { AidCategory } from "@/lib/first-aid";
 import { pickRandomHero, type Hero } from "@/lib/heroes";
 import { HeroMap } from "@/components/HeroMap";
 import { analyzeEmergency, type EmergencyAnalysis } from "@/lib/ai.functions";
 import { saveEmergency } from "@/lib/supabase";
+import { buildNearbyHeroes } from "@/lib/nearby";
 
 type Props = {
   category: AidCategory;

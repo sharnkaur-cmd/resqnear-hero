@@ -47,11 +47,11 @@ function guessCategoryFromText(text: string): AidCategory {
   ];
   for (const [re, key] of pairs) {
     if (re.test(t)) {
-      const hit = EMERGENCY_CATEGORIES.find((c) => c.title.toLowerCase().includes(key.toLowerCase()));
+      const hit = AID_CATEGORIES.find((c) => c.title.toLowerCase().includes(key.toLowerCase()));
       if (hit) return hit;
     }
   }
-  return EMERGENCY_CATEGORIES[0];
+  return AID_CATEGORIES[0];
 }
 
 function HomePage() {

@@ -46,10 +46,17 @@ const SEVERITY_TINT: Record<string, string> = {
 export function EmergencyActive({ category, onClose, userLat, userLon, locationLabel }: Props) {
   const [seconds, setSeconds] = useState(120);
   const [elapsed, setElapsed] = useState(0);
+  const [analysis, setAnalysis] = useState<EmergencyAnalysis | null>(null);
+  const [loadingAi, setLoadingAi] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState("en-US");
+  const [liveNearby, setLiveNearby] = useState<NearbyHero[]>([]);
+  const analyze = useServerFn(analyzeEmergency);
+  const findDoctors = useServerFn(findNearbyDoctors);
   const heroRef = useRef<Hero>(useMemo(() => pickRandomHero(), []));
   const hero = heroRef.current;
   const userLatSafe = userLat ?? 12.9352;
   const userLonSafe = userLon ?? 77.6245;
+
   useEffect(() => {
     if (!userLat || !userLon) {
       setLiveNearby([]);
@@ -74,13 +81,15 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
     if (liveNearby.length > 0) return liveNearby;
     return buildNearbyHeroes(userLatSafe, userLonSafe, hero, 5);
   }, [hero, liveNearby, userLatSafe, userLonSafe]);
-  const matched = nearby[0];
-  const [analysis, setAnalysis] = useState<EmergencyAnalysis | null>(null);
-  const [loadingAi, setLoadingAi] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState("en-US");
-  const [liveNearby, setLiveNearby] = useState<NearbyHero[]>([]);
-  const analyze = useServerFn(analyzeEmergency);
-  const findDoctors = useServerFn(findNearbyDoctors);
+  const matched = nearby[0] ?? {
+    name: "Nearby Hospital",
+    skill: "Hospital",
+    area: "Nearby",
+    distanceKm: 0,
+    etaMin: 1,
+    lat: userLatSafe,
+    lon: userLonSafe,
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("emergency_speech_language");
@@ -148,7 +157,10 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
     };
   }, [analyze, category.title, hero.area, hero.name, locationLabel, userLat, userLon]);
 
-  const steps = analysis?.firstAidSteps ?? category.steps;
+  const steps =
+    Array.isArray(analysis?.firstAidSteps) && analysis.firstAidSteps.length > 0
+      ? analysis.firstAidSteps
+      : category.steps;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0F0F1A] text-white">
@@ -314,7 +326,7 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
               </div>
             </div>
             <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 text-2xl font-black text-white backdrop-blur">
-              {matched.name.trim()[0]}
+              {(matched.name ?? "H").trim()[0] ?? "H"}
             </div>
           </div>
 

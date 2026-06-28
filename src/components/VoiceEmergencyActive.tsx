@@ -18,6 +18,7 @@ import { HeroMap } from "@/components/HeroMap";
 import { pickRandomHero, type Hero } from "@/lib/heroes";
 import { buildNearbyHeroes, findNearbyDoctors, type NearbyHero } from "@/lib/nearby";
 import { saveEmergency } from "@/lib/supabase";
+import { speakText } from "@/lib/speak";
 
 type Props = {
   category: AidCategory;
@@ -105,6 +106,12 @@ export function VoiceEmergencyActive({
 
   const steps = guidanceSteps.slice(0, 5);
 
+  useEffect(() => {
+    if (loading || steps.length === 0) return;
+    const text = [category.title, ...steps].join(" ");
+    speakText(text, "en-US");
+  }, [category.title, loading, steps]);
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0F0F1A] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(114,9,183,0.35),transparent_60%)]" />
@@ -145,7 +152,6 @@ export function VoiceEmergencyActive({
               <p className="mt-1 text-2xl font-extrabold">
                 {category.emoji} {label}
               </p>
-              <p className="mt-2 text-xs text-white/60">You said: “{speech}”</p>
               {locationLabel && <p className="mt-1 text-xs text-white/50">{locationLabel}</p>}
             </>
           )}

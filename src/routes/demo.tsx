@@ -116,7 +116,13 @@ function DemoPage() {
   const progress = step < 0 ? 0 : Math.min(100, ((step + 1) / FLOW.length) * 100);
   const currentStep = step >= 0 ? FLOW[step] : null;
   const completedSteps = step >= 0 ? FLOW.slice(0, Math.max(0, step)) : [];
-  const statusLabel = completed ? "Completed" : running ? "Running" : step >= 0 ? "Paused" : "Ready";
+  const statusLabel = completed
+    ? "Completed"
+    : running
+      ? "Running"
+      : step >= 0
+        ? "Paused"
+        : "Ready";
 
   return (
     <main className="mx-auto max-w-4xl px-5 pb-20 pt-8">
@@ -137,7 +143,8 @@ function DemoPage() {
             disabled={running}
             className="inline-flex items-center gap-2 rounded-2xl bg-gradient-sos px-5 py-3 text-sm font-extrabold uppercase tracking-[0.2em] text-white shadow-glow-red disabled:opacity-60"
           >
-            <Play className="h-4 w-4" /> {running ? "Running…" : completed ? "Replay Simulation" : "Run Simulation"}
+            <Play className="h-4 w-4" />{" "}
+            {running ? "Running…" : completed ? "Replay Simulation" : "Run Simulation"}
           </button>
           <button
             onClick={resetSimulation}
@@ -212,7 +219,9 @@ function DemoPage() {
                   LIVE SIMULATION
                 </p>
               </div>
-              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] ${completed ? "bg-success/15 text-success" : running ? "bg-[#4cc9f0]/15 text-[#4cc9f0]" : "bg-white/10 text-white/70"}`}>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] ${completed ? "bg-success/15 text-success" : running ? "bg-[#4cc9f0]/15 text-[#4cc9f0]" : "bg-white/10 text-white/70"}`}
+              >
                 {completed ? "Completed" : running ? "Running" : "Ready"}
               </span>
             </div>
@@ -224,20 +233,26 @@ function DemoPage() {
                     A live workflow simulation of the full ResQNear response path.
                   </p>
                 </div>
-                <div className={`h-3 w-3 rounded-full ${running ? "animate-pulse bg-[#4cc9f0]" : completed ? "bg-success" : "bg-white/20"}`} />
+                <div
+                  className={`h-3 w-3 rounded-full ${running ? "animate-pulse bg-[#4cc9f0]" : completed ? "bg-success" : "bg-white/20"}`}
+                />
               </div>
 
               <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4">
                 <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
                   <span>Current Event</span>
-                  <span>Step {step >= 0 ? step + 1 : 0} of {FLOW.length}</span>
+                  <span>
+                    Step {step >= 0 ? step + 1 : 0} of {FLOW.length}
+                  </span>
                 </div>
                 <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                   <p className="text-xl font-extrabold text-white">
                     {currentStep ? currentStep.title : "Waiting for simulation"}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {currentStep ? currentStep.description : "Press Run Simulation to begin the live emergency workflow."}
+                    {currentStep
+                      ? currentStep.description
+                      : "Press Run Simulation to begin the live emergency workflow."}
                   </p>
                 </div>
               </div>
@@ -277,11 +292,16 @@ function DemoPage() {
                 <ul className="mt-3 space-y-2">
                   {completedSteps.length > 0 ? (
                     completedSteps.map((item, index) => (
-                      <li key={item.title} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <li
+                        key={item.title}
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                      >
                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                         <span>
                           <span className="font-semibold text-white">{item.title}</span>
-                          {index === completedSteps.length - 1 && !completed ? " · In progress" : ""}
+                          {index === completedSteps.length - 1 && !completed
+                            ? " · In progress"
+                            : ""}
                         </span>
                       </li>
                     ))

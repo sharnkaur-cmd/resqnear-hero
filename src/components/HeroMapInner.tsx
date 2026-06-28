@@ -2,10 +2,15 @@ import { MapContainer, TileLayer, CircleMarker, Circle, Tooltip } from "react-le
 import type { HeroMapProps } from "./HeroMap";
 
 export default function HeroMapInner({ userLat, userLon, nearby, className }: HeroMapProps) {
-  // Default to Koramangala, Bengaluru when GPS unavailable
-  const center: [number, number] = [userLat ?? 12.9352, userLon ?? 77.6245];
-  const matched = nearby[0];
-  const others = nearby.slice(1);
+  const center: [number, number] = [
+    Number.isFinite(userLat) ? userLat : 12.9352,
+    Number.isFinite(userLon) ? userLon : 77.6245,
+  ];
+  const safeNearby = nearby.filter(
+    (item) => Number.isFinite(item?.lat) && Number.isFinite(item?.lon),
+  );
+  const matched = safeNearby[0];
+  const others = safeNearby.slice(1);
 
   return (
     <div
@@ -96,7 +101,7 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
         Live · OpenStreetMap
       </div>
       <div className="pointer-events-none absolute top-2 left-2 rounded-md bg-black/50 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white/85 backdrop-blur">
-        {nearby.length} Heroes within 2 km
+        {safeNearby.length} Heroes within 2 km
       </div>
     </div>
   );

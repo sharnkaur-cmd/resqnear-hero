@@ -181,8 +181,14 @@ function NavBar() {
 }
 
 function OfflineBanner() {
-  const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
+  const [online, setOnline] = useState(true);
+
   useEffect(() => {
+    if (typeof navigator === "undefined") return;
+
+    const updateStatus = () => setOnline(navigator.onLine);
+    updateStatus();
+
     const up = () => setOnline(true);
     const down = () => setOnline(false);
     window.addEventListener("online", up);
@@ -192,6 +198,7 @@ function OfflineBanner() {
       window.removeEventListener("offline", down);
     };
   }, []);
+
   if (online) return null;
   return (
     <div className="mx-auto mt-2 max-w-5xl px-4">

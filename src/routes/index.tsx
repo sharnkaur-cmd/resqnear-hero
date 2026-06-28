@@ -123,20 +123,28 @@ function HomePage() {
     if (voiceArmed.current) return;
 
     voiceArmed.current = true;
-
     setVoiceLoading(true);
 
-    setVoiceSession({ speech: text, ...fallbackClassifySpeech(text) });
+    const fallback = fallbackClassifySpeech(text);
+    setVoiceSession({ speech: text, ...fallback });
 
     try {
       const result = await classify({ data: { speech: text } });
-
+      if (result.confidence === "low") {
+        setVoiceSession(null);
+        setPicker(true);
+        return;
+      }
       setVoiceSession({ speech: text, ...result });
     } catch {
-      setVoiceSession({ speech: text, ...fallbackClassifySpeech(text) });
+      if (fallback.confidence === "low") {
+        setVoiceSession(null);
+        setPicker(true);
+        return;
+      }
+      setVoiceSession({ speech: text, ...fallback });
     } finally {
       setVoiceLoading(false);
-
       setTimeout(() => {
         voiceArmed.current = false;
       }, 1500);

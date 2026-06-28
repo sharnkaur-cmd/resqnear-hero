@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { AID_CATEGORIES, type AidCategory } from "@/lib/first-aid";
 
 export const EMERGENCY_TYPE_LABELS = [
-  "Cardiac",
+  "Cardiac Arrest",
   "Fire",
   "Road Accident",
   "Medical",
@@ -12,14 +12,17 @@ export const EMERGENCY_TYPE_LABELS = [
 
 export type EmergencyTypeLabel = (typeof EMERGENCY_TYPE_LABELS)[number];
 
+export type VoiceConfidence = "high" | "medium" | "low";
+
 export type VoiceEmergencyResult = {
   label: EmergencyTypeLabel;
   category: AidCategory;
   guidanceSteps: string[];
+  confidence: VoiceConfidence;
 };
 
 const LABEL_TO_CATEGORY_ID: Record<EmergencyTypeLabel, string> = {
-  Cardiac: "cardiac",
+  "Cardiac Arrest": "cardiac",
   Fire: "fire",
   "Road Accident": "accident",
   Medical: "medical",
@@ -28,7 +31,7 @@ const LABEL_TO_CATEGORY_ID: Record<EmergencyTypeLabel, string> = {
 };
 
 const FALLBACK_GUIDANCE: Record<EmergencyTypeLabel, string[]> = {
-  Cardiac: [
+  "Cardiac Arrest": [
     "Sit down calmly and stay still.",
     "Keep the person comfortable and loosen tight clothing.",
     "Avoid unnecessary movement.",
@@ -72,15 +75,52 @@ const FALLBACK_GUIDANCE: Record<EmergencyTypeLabel, string[]> = {
   ],
 };
 
-export function categoryFromLabel(label: string): AidCategory {
-  const exact = EMERGENCY_TYPE_LABELS.find((t) => t.toLowerCase() === label.trim().toLowerCase());
-  if (exact) {
-    return AID_CATEGORIES.find((c) => c.id === LABEL_TO_CATEGORY_ID[exact]) ?? AID_CATEGORIES[0];
+function normalizeEmergencyLabel(label: string): EmergencyTypeLabel | null {
+  const trimmed = label.trim();
+  if (!trimmed) return null;
+
+  const normalized = trimmed.toLowerCase();
+  if (normalized === "cardiac" || normalized.includes("cardiac") || normalized.includes("heart")) {
+    return "Cardiac Arrest";
+  }
+  if (normalized.includes("fire") || normalized.includes("burn")) {
+    return "Fire";
+  }
+  if (
+    normalized.includes("accident") ||
+    normalized.includes("crash") ||
+    normalized.includes("collision")
+  ) {
+    return "Road Accident";
+  }
+  if (
+    normalized.includes("medical") ||
+    normalized.includes("injury") ||
+    normalized.includes("fever")
+  ) {
+    return "Medical";
+  }
+  if (normalized.includes("chok") || normalized.includes("throat")) {
+    return "Choking";
+  }
+  if (
+    normalized.includes("threat") ||
+    normalized.includes("unsafe") ||
+    normalized.includes("danger")
+  ) {
+    return "Safety Threat";
   }
 
-  const loose = EMERGENCY_TYPE_LABELS.find((t) => label.toLowerCase().includes(t.toLowerCase()));
-  if (loose) {
-    return AID_CATEGORIES.find((c) => c.id === LABEL_TO_CATEGORY_ID[loose]) ?? AID_CATEGORIES[0];
+  const exact = EMERGENCY_TYPE_LABELS.find((candidate) => candidate.toLowerCase() === normalized);
+  return exact ?? null;
+}
+
+export function categoryFromLabel(label: string): AidCategory {
+  const normalized = normalizeEmergencyLabel(label);
+  if (normalized) {
+    return (
+      AID_CATEGORIES.find((c) => c.id === LABEL_TO_CATEGORY_ID[normalized]) ?? AID_CATEGORIES[0]
+    );
   }
 
   return AID_CATEGORIES[0];
@@ -89,6 +129,40 @@ export function categoryFromLabel(label: string): AidCategory {
 export function labelFromCategory(category: AidCategory): EmergencyTypeLabel {
   const match = EMERGENCY_TYPE_LABELS.find((t) => LABEL_TO_CATEGORY_ID[t] === category.id);
   return match ?? "Medical";
+}
+
+function detectConfidence(text: string, label: EmergencyTypeLabel): VoiceConfidence {
+  const t = text.toLowerCase();
+  const strongSignals = [
+    "heart attack",
+    "cardiac",
+    "chest pain",
+    "fire",
+    "smoke",
+    "on fire",
+    "burning",
+    "accident",
+    "crash",
+    "collision",
+    "bike",
+    "car hit",
+    "road accident",
+    "choking",
+    "can't breathe",
+    "cannot breathe",
+    "stuck in throat",
+    "threat",
+    "attack",
+    "unsafe",
+    "danger",
+    "rob",
+    "bleeding",
+    "bleed",
+  ];
+  const hasStrongSignal = strongSignals.some((signal) => t.includes(signal));
+  if (!text.trim()) return "low";
+  if (hasStrongSignal) return "high";
+  return t.split(/\s+/).length >= 4 ? "medium" : "low";
 }
 
 export function fallbackClassifySpeech(text: string): VoiceEmergencyResult {
@@ -103,7 +177,7 @@ export function fallbackClassifySpeech(text: string): VoiceEmergencyResult {
     t.includes("सीने") ||
     t.includes("दिल")
   ) {
-    label = "Cardiac";
+    label = "Cardiac Arrest";
   } else if (
     t.includes("fire") ||
     t.includes("burning") ||
@@ -151,6 +225,7 @@ export function fallbackClassifySpeech(text: string): VoiceEmergencyResult {
     label,
     category: categoryFromLabel(label),
     guidanceSteps: FALLBACK_GUIDANCE[label],
+    confidence: detectConfidence(text, label),
   };
 }
 
@@ -173,17 +248,14 @@ function parseGeminiResponse(raw: string): {
   try {
     const parsed = JSON.parse(cleaned) as { category?: string; guidanceSteps?: string[] };
     if (!parsed.category) return { label: null, guidanceSteps: null };
-    const label = EMERGENCY_TYPE_LABELS.find(
-      (t) => t.toLowerCase() === parsed.category!.trim().toLowerCase(),
-    );
+    const label = normalizeEmergencyLabel(parsed.category);
     if (!label) return { label: null, guidanceSteps: null };
     return {
       label,
       guidanceSteps: Array.isArray(parsed.guidanceSteps) ? parsed.guidanceSteps : null,
     };
   } catch {
-    const label =
-      EMERGENCY_TYPE_LABELS.find((t) => cleaned.toLowerCase().includes(t.toLowerCase())) ?? null;
+    const label = normalizeEmergencyLabel(cleaned);
     return { label, guidanceSteps: null };
   }
 }
@@ -200,7 +272,7 @@ export const classifyEmergencySpeech = createServerFn({ method: "POST" })
     const prompt = `You are an emergency triage AI for India. Classify the caller's speech and give short first-aid guidance.
 
 Allowed categories ONLY (exact spelling):
-1. Cardiac — heart pain, chest pain, cardiac problem, सीने में दर्द
+1. Cardiac Arrest — heart pain, chest pain, cardiac problem, सीने में दर्द
 2. Fire — house on fire, fire accident, burning, आग लग गई
 3. Road Accident — car accident, bike crash, road accident
 4. Medical — fever, injury, sickness, medical emergency
@@ -251,6 +323,7 @@ Rules:
         label: parsed.label,
         category: categoryFromLabel(parsed.label),
         guidanceSteps: normalizeGuidance(parsed.guidanceSteps, parsed.label),
+        confidence: detectConfidence(speech, parsed.label),
       };
     } catch {
       return fallback;

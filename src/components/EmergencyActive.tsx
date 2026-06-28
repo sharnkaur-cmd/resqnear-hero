@@ -30,12 +30,15 @@ const SEVERITY_TINT: Record<string, string> = {
 };
 
 export function EmergencyActive({ category, onClose, userLat, userLon }: Props) {
-  const [seconds, setSeconds] = useState(300);
+  const [seconds, setSeconds] = useState(120);
+  const [elapsed, setElapsed] = useState(0);
   const heroRef = useRef<Hero>(useMemo(() => pickRandomHero(), []));
   const hero = heroRef.current;
+  const userLatSafe = userLat ?? 12.9352;
+  const userLonSafe = userLon ?? 77.6245;
   const nearby = useMemo(
-    () => buildNearbyHeroes(userLat ?? 12.9352, userLon ?? 77.6245, hero, 5),
-    [userLat, userLon, hero],
+    () => buildNearbyHeroes(userLatSafe, userLonSafe, hero, 5),
+    [userLatSafe, userLonSafe, hero],
   );
   const matched = nearby[0];
   const [analysis, setAnalysis] = useState<EmergencyAnalysis | null>(null);

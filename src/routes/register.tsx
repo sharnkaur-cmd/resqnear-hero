@@ -61,9 +61,20 @@ function RegisterPage() {
       const { error: dbError } = await saveHero(form);
       if (dbError) throw dbError;
       setSavedName(form.name);
+      localStorage.setItem('resqnear_hero', JSON.stringify({
+        name: form.name,
+        phone: form.phone,
+        skill: form.skill,
+        locality: form.locality,
+        registered: true,
+        registeredAt: new Date().toISOString()
+      }));
       setSubmitted(true);
       setForm({ name: "", phone: "", skill: "Doctor", locality: "", pincode: "", available: true });
-      setTimeout(() => setSubmitted(false), 6000);
+      setTimeout(() => {
+        setSubmitted(false);
+        window.location.href = '/';
+      }, 3000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not save right now.";
       setError(msg);

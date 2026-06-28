@@ -101,7 +101,7 @@ export const textToSpeech = createServerFn({ method: "POST" })
 
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-tts:generateSpeech?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateSpeech?key=${GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -121,7 +121,7 @@ export const textToSpeech = createServerFn({ method: "POST" })
 
       const j = await res.json();
       if (!j.audioContent) {
-        console.error("No audio in response:", JSON.stringify(j).slice(0, 500));
+        console.error("Gemini TTS full response:", JSON.stringify(j));
         throw new Error("No audio data");
       }
 

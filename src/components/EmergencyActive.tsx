@@ -46,9 +46,34 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
   const analyze = useServerFn(analyzeEmergency);
 
   useEffect(() => {
-    const t = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
+    const t = setInterval(() => {
+      setSeconds((s) => (s > 0 ? s - 1 : 0));
+      setElapsed((e) => e + 1);
+    }, 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Hero match score (skill 40 + distance<=0.5km 40 + available 20)
+  const matchScore = useMemo(() => {
+    let s = 0;
+    const need = analysis?.heroSkillNeeded?.toLowerCase() ?? "";
+    if (need && matched.skill.toLowerCase().includes(need.split(" ")[0])) s += 40;
+    else s += 25;
+    if (matched.distanceKm <= 0.5) s += 40;
+    else if (matched.distanceKm <= 1.2) s += 28;
+    else s += 15;
+    s += 20; // available
+    return Math.min(100, s);
+  }, [matched, analysis]);
+
+  const timeline = [
+    { t: 0, label: "SOS received" },
+    { t: 3, label: "Location shared" },
+    { t: 5, label: "AI analysing" },
+    { t: 8, label: "Hero matched" },
+    { t: 10, label: "Help on the way" },
+  ];
+  const escalated = seconds === 0;
 
   useEffect(() => {
     let cancelled = false;

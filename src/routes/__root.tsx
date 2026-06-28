@@ -113,6 +113,9 @@ function NavBar() {
           <Link to="/heroes" className={baseLink} activeProps={activeProps}>
             <Trophy className="h-4 w-4" /><span>Heroes</span>
           </Link>
+          <Link to="/resq-hub" className={baseLink} activeProps={activeProps}>
+            <Shield className="h-4 w-4" /><span>ResQ Hub</span>
+          </Link>
           <Link to="/register" className={baseLink} activeProps={activeProps}>
             <UserPlus className="h-4 w-4" /><span>Register</span>
           </Link>

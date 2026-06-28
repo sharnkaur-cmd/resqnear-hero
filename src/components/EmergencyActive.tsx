@@ -6,7 +6,7 @@ import { pickRandomHero, type Hero } from "@/lib/heroes";
 import { HeroMap } from "@/components/HeroMap";
 import { analyzeEmergency, type EmergencyAnalysis } from "@/lib/ai.functions";
 import { saveEmergency } from "@/lib/supabase";
-import { buildNearbyHeroes } from "@/lib/nearby";
+import { buildNearbyHeroes, findNearbyDoctors, type NearbyHero } from "@/lib/nearby";
 import { speakText, stopSpeaking } from "@/lib/speak";
 
 type Props = {
@@ -37,15 +37,37 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
   const hero = heroRef.current;
   const userLatSafe = userLat ?? 12.9352;
   const userLonSafe = userLon ?? 77.6245;
-  const nearby = useMemo(
-    () => buildNearbyHeroes(userLatSafe, userLonSafe, hero, 5),
-    [userLatSafe, userLonSafe, hero],
-  );
+  useEffect(() => {
+    if (!userLat || !userLon) {
+      setLiveNearby([]);
+      return;
+    }
+
+    let cancelled = false;
+    findDoctors({ data: { lat: userLat, lon: userLon, radius: 8000, limit: 5 } })
+      .then((doctors) => {
+        if (!cancelled) setLiveNearby(doctors);
+      })
+      .catch(() => {
+        if (!cancelled) setLiveNearby([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [findDoctors, userLat, userLon]);
+
+  const nearby = useMemo(() => {
+    if (liveNearby.length > 0) return liveNearby;
+    return buildNearbyHeroes(userLatSafe, userLonSafe, hero, 5);
+  }, [hero, liveNearby, userLatSafe, userLonSafe]);
   const matched = nearby[0];
   const [analysis, setAnalysis] = useState<EmergencyAnalysis | null>(null);
   const [loadingAi, setLoadingAi] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState("en-US");
+  const [liveNearby, setLiveNearby] = useState<NearbyHero[]>([]);
   const analyze = useServerFn(analyzeEmergency);
+  const findDoctors = useServerFn(findNearbyDoctors);
 
   useEffect(() => {
     const saved = localStorage.getItem("emergency_speech_language");
@@ -187,7 +209,7 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
         <div className="mt-4 rounded-3xl glass-card p-4">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-              {nearby.length} Heroes Nearby
+              {nearby.length} Hospitals Nearby
             </p>
             <span className="text-[10px] font-semibold uppercase tracking-widest text-success">Live</span>
           </div>
@@ -220,7 +242,7 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
         {/* Matched hero card — blue/violet gradient (no red) */}
         <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-blue-violet p-5 text-white shadow-glow-blue">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">Nearest Hero Matched</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">Nearest Hospital</p>
             <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-black text-white">{matchScore}% Match</span>
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">

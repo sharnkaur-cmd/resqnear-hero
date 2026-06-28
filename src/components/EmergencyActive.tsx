@@ -240,7 +240,7 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
           </div>
 
           <a
-            href={`tel:${matched.phone ?? "112"}`}
+            href="tel:112"
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#00D4AA] px-5 py-4 text-lg font-extrabold uppercase tracking-wider text-[#0F0F1A] shadow-glow-green transition active:scale-[0.98]"
           >
             <Phone className="h-5 w-5" /> Call Hero

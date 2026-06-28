@@ -40,8 +40,8 @@ function FirstAidPage() {
   async function toggleSpeak() {
     if (speaking) { stopSpeaking(); setSpeaking(false); return; }
     const text = `${active.title} first aid. ${active.steps.map((s, i) => `Step ${i + 1}. ${s}`).join(" ")}`;
-    await speak(text, selectedLanguage);
     setSpeaking(true);
+    await speak(text, selectedLanguage);
     setTimeout(() => setSpeaking(false), text.length * 60);
   }
 

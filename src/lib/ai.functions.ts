@@ -84,3 +84,63 @@ Never use 911. Always use 112 for India.`;
       return fallback(data.type);
     }
   });
+
+export type TtsResponse = {
+  audioBase64: string;
+  mimeType: string;
+};
+
+export const textToSpeech = createServerFn({ method: "POST" })
+  .validator((input: unknown) => input as { text: string; lang?: string })
+  .handler(async ({ data }): Promise<TtsResponse> => {
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("Missing API key");
+
+    const lang = data.lang || "en-US";
+    const prompt = `Read the following emergency first-aid instructions aloud in a clear, calm, authoritative voice. Language: ${lang}. Text: ${data.text}`;
+
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Lovable-API-Key": key,
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.0-flash-exp",
+          messages: [
+            { role: "user", content: prompt },
+          ],
+          response_modalities: ["AUDIO"],
+          speech_config: {
+            voice_config: {
+              prebuilt_voice_config: {
+                voice_name: "Kore",
+              },
+            },
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("TTS API error:", res.status, errText);
+        throw new Error("TTS API error");
+      }
+
+      const j = await res.json();
+      const audioPart = j.choices?.[0]?.message?.content?.parts?.find((p: any) => p.inline_data);
+      if (!audioPart?.inline_data?.data) {
+        console.error("No audio in response:", JSON.stringify(j).slice(0, 500));
+        throw new Error("No audio data");
+      }
+
+      return {
+        audioBase64: audioPart.inline_data.data,
+        mimeType: audioPart.inline_data.mime_type || "audio/wav",
+      };
+    } catch (e) {
+      console.error("TTS failed:", e);
+      throw e;
+    }
+  });

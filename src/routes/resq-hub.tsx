@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { speak } from "@/lib/speak";
 
 export const Route = createFileRoute("/resq-hub")({
   head: () => ({
@@ -318,23 +319,9 @@ function ResQHubPage() {
     );
   }
 
-  function speakCourse(title: string, steps: string[]) {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-
+  async function speakCourse(title: string, steps: string[]) {
     const text = `${title}. ${steps.join(". ")}`;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = selectedLanguage;
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-
-    const matchingVoice = voices.find((voice) => voice.lang === selectedLanguage);
-    if (matchingVoice) {
-      utterance.voice = matchingVoice;
-    }
-
-    window.speechSynthesis.speak(utterance);
+    await speak(text, selectedLanguage);
   }
 
   function completeCourse(id: string) {

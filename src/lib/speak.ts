@@ -1,46 +1,30 @@
-let cachedVoices: SpeechSynthesisVoice[] | null = null;
-let pendingResolvers: (() => void)[] = [];
+import { textToSpeech } from "@/lib/ai.functions";
 
-function ensureVoices(): Promise<void> {
-  if (cachedVoices) return Promise.resolve();
-
-  const current = window.speechSynthesis.getVoices();
-  if (current.length > 0) {
-    cachedVoices = current;
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    pendingResolvers.push(resolve);
-    window.speechSynthesis.onvoiceschanged = () => {
-      cachedVoices = window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = null;
-      pendingResolvers.forEach((r) => r());
-      pendingResolvers = [];
-    };
-  });
-}
+let currentAudio: HTMLAudioElement | null = null;
 
 export async function speak(text: string, lang: string = "en-US") {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
+  try {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
 
-  await ensureVoices();
+    const result = await textToSpeech({ data: { text, lang } });
 
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 0.95;
-  utter.pitch = 1;
-  utter.lang = lang;
-
-  if (cachedVoices) {
-    const match = cachedVoices.find((v) => v.lang === lang);
-    if (match) utter.voice = match;
+    const audio = new Audio(`data:${result.mimeType};base64,${result.audioBase64}`);
+    currentAudio = audio;
+    await audio.play();
+    currentAudio = null;
+  } catch (e) {
+    console.error("Audio playback failed:", e);
+    alert("Audio not available. Please try again.");
   }
-
-  window.speechSynthesis.speak(utter);
 }
 
 export function stopSpeaking() {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
 }

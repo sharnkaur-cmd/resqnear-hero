@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Volume2, Square, Phone } from "lucide-react";
 import { AID_CATEGORIES, EMERGENCY_NUMBERS } from "@/lib/first-aid";
-import { speak, stopSpeaking } from "@/lib/speak";
+import { speakText, stopSpeaking } from "@/lib/speak";
 
 export const Route = createFileRoute("/first-aid")({
   head: () => ({
@@ -37,11 +37,11 @@ function FirstAidPage() {
     localStorage.setItem("first_aid_speech_language", selectedLanguage);
   }, [selectedLanguage]);
 
-  async function toggleSpeak() {
+  function toggleSpeak() {
     if (speaking) { stopSpeaking(); setSpeaking(false); return; }
     const text = `${active.title} first aid. ${active.steps.map((s, i) => `Step ${i + 1}. ${s}`).join(" ")}`;
     setSpeaking(true);
-    await speak(text, selectedLanguage);
+    speakText(text, selectedLanguage);
     setTimeout(() => setSpeaking(false), text.length * 60);
   }
 

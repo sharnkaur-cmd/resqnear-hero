@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { speak } from "@/lib/speak";
+import { speakText, stopSpeaking } from "@/lib/speak";
 
 export const Route = createFileRoute("/resq-hub")({
   head: () => ({
@@ -319,9 +319,10 @@ function ResQHubPage() {
     );
   }
 
-  async function speakCourse(title: string, steps: string[]) {
+  function speakCourse(title: string, steps: string[]) {
     const text = `${title}. ${steps.join(". ")}`;
-    await speak(text, selectedLanguage);
+    stopSpeaking();
+    speakText(text, selectedLanguage);
   }
 
   function completeCourse(id: string) {

@@ -1,30 +1,86 @@
-import { textToSpeech } from "@/lib/ai.functions";
+import { toast } from "sonner";
 
-let currentAudio: HTMLAudioElement | null = null;
+let speechSynthUtterance: SpeechSynthesisUtterance | null = null;
+let voices: SpeechSynthesisVoice[] = [];
 
-export async function speak(text: string, lang: string = "en-US") {
+// Load voices when available
+if (typeof window !== 'undefined' && window.speechSynthesis) {
+  // Load voices immediately if available
+  voices = window.speechSynthesis.getVoices();
+  
+  // Also listen for voices changed event
+  window.speechSynthesis.onvoiceschanged = () => {
+    voices = window.speechSynthesis.getVoices();
+    console.log("Voices loaded:", voices.length);
+  };
+}
+
+export function speakText(text: string, lang: string = "en-US"): void {
+  console.log("speakText() called:", { text: text.substring(0, 30), lang });
+  
   try {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
+    // Cancel ongoing speech
+    stopSpeaking();
+
+    // Check if Web Speech API is supported
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      console.error("Speech synthesis not supported");
+      toast.error("Audio not available");
+      return;
     }
 
-    const result = await textToSpeech({ data: { text, lang } });
+    const utterance = new SpeechSynthesisUtterance(text);
+    speechSynthUtterance = utterance;
+    
+    // Try to find a voice for the selected language
+    const langMap: Record<string, string> = {
+      "en-US": "en-US",
+      "en-IN": "en-IN",
+      "hi-IN": "hi-IN",
+      "pa-IN": "pa-IN",
+    };
+    
+    const targetLang = langMap[lang] || "en-US";
+    utterance.lang = targetLang;
+    utterance.rate = 1;
+    utterance.pitch = 1;
 
-    const audio = new Audio(`data:${result.mimeType};base64,${result.audioBase64}`);
-    currentAudio = audio;
-    await audio.play();
-    currentAudio = null;
+    // Try to select a specific voice if available
+    const voice = voices.find(v => v.lang.startsWith(targetLang.split('-')[0]));
+    if (voice) {
+      utterance.voice = voice;
+      console.log("Using voice:", voice.name, voice.lang);
+    }
+
+    console.log("Speaking:", { text: text.substring(0, 50), lang: utterance.lang });
+
+    utterance.onstart = () => {
+      console.log("✓ Speech started");
+    };
+
+    utterance.onend = () => {
+      console.log("✓ Speech finished");
+      speechSynthUtterance = null;
+    };
+
+    utterance.onerror = (e) => {
+      console.error("✗ Speech error:", e);
+      speechSynthUtterance = null;
+      toast.error("Audio not available");
+    };
+
+    window.speechSynthesis.speak(utterance);
+    console.log("✓ speechSynthesis.speak() called");
   } catch (e) {
-    console.error("Audio playback failed:", e);
-    alert("Audio not available. Please try again.");
+    console.error("✗ Audio failed:", e);
+    toast.error("Audio not available");
+    speechSynthUtterance = null;
   }
 }
 
-export function stopSpeaking() {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
+export function stopSpeaking(): void {
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    speechSynthUtterance = null;
   }
 }

@@ -13,6 +13,7 @@ import { Shield, Home, Trophy, UserPlus, Sparkles } from "lucide-react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { registerServiceWorker } from "../lib/register-sw";
+import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -156,6 +157,7 @@ function RootComponent() {
         <NavBar />
         <OfflineBanner />
         <Outlet />
+        <Toaster />
       </div>
     </QueryClientProvider>
   );

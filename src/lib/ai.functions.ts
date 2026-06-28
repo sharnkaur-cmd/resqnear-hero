@@ -94,12 +94,16 @@ export const textToSpeech = createServerFn({ method: "POST" })
   .validator((input: unknown) => input as { text: string; lang?: string })
   .handler(async ({ data }): Promise<TtsResponse> => {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_API_KEY) throw new Error("Missing Gemini API key");
+    if (!GEMINI_API_KEY) {
+      console.error("Missing Gemini API key - check .env file");
+      throw new Error("Missing Gemini API key");
+    }
 
     const lang = data.lang || "en-US";
-    const voiceName = "Aoede";
 
     try {
+      console.log("Calling Gemini TTS with:", { text: data.text, lang });
+      
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateSpeech?key=${GEMINI_API_KEY}`,
         {
@@ -107,26 +111,34 @@ export const textToSpeech = createServerFn({ method: "POST" })
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             input: { text: data.text },
-            voice: { languageCode: lang, name: voiceName },
+            voice: { languageCode: "en-IN", name: "en-IN-Wavenet-C" },
             audioConfig: { audioEncoding: "MP3" },
           }),
         }
       );
 
+      console.log("Gemini TTS response status:", res.status, res.statusText);
+
       if (!res.ok) {
         const errText = await res.text();
-        console.error("TTS API error:", res.status, errText);
-        throw new Error("TTS API error");
+        console.error("TTS API error:", res.status, res.statusText);
+        console.error("TTS API error body:", errText);
+        throw new Error(`TTS API error: ${res.status} - ${errText}`);
       }
 
       const j = await res.json();
-      if (!j.audioContent) {
-        console.error("Gemini TTS full response:", JSON.stringify(j));
-        throw new Error("No audio data");
+      console.log("Gemini TTS response keys:", Object.keys(j));
+      
+      // Check for audioContent in the response
+      const audioContent = j.audioContent || j.data?.audioContent;
+      
+      if (!audioContent) {
+        console.error("Gemini TTS full response (no audioContent):", JSON.stringify(j));
+        throw new Error("No audio data in response");
       }
 
       return {
-        audioBase64: j.audioContent,
+        audioBase64: audioContent,
         mimeType: "audio/mp3",
       };
     } catch (e) {

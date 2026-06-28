@@ -1,0 +1,6 @@
+- [ ] Implement Gemini TTS-backed audio playback and cross-browser handling in src/lib/speak.ts
+- [ ] Update src/routes/first-aid.tsx speaker click logic to use Gemini TTS-backed playback for Choking/Bleeding/Stroke (without changing button styling/layout)
+- [ ] Validate stop behavior and repeated clicks
+- [ ] Run local demo and confirm sound output in at least one browser
+- [ ] Add demo steps for “before pushing to GitHub”
+

@@ -7,7 +7,7 @@ import { HeroMap } from "@/components/HeroMap";
 import { analyzeEmergency, type EmergencyAnalysis } from "@/lib/ai.functions";
 import { saveEmergency } from "@/lib/supabase";
 import { buildNearbyHeroes } from "@/lib/nearby";
-import { speak, stopSpeaking } from "@/lib/speak";
+import { speakText, stopSpeaking } from "@/lib/speak";
 
 type Props = {
   category: AidCategory;
@@ -309,9 +309,9 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
                 <option value="hi-IN">हिन्दी</option>
                 <option value="pa-IN">ਪੰਜਾਬੀ</option>
               </select>
-              <button onClick={() => { stopSpeaking(); speak(steps.join(". "), selectedLanguage); }} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white hover:bg-white/15">
-                <Volume2 className="h-3.5 w-3.5" /> Read Aloud
-              </button>
+              <button onClick={() => { stopSpeaking(); speakText(steps.join(". "), selectedLanguage); }} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white hover:bg-white/15">
+                 <Volume2 className="h-3.5 w-3.5" /> Read Aloud
+               </button>
             </div>
           </div>
           <ol className="mt-3 space-y-2">

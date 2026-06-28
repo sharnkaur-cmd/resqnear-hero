@@ -6,7 +6,7 @@ import { EmergencyActive } from "@/components/EmergencyActive";
 import { GpsIndicator } from "@/components/GpsIndicator";
 import { VoiceSOS } from "@/components/VoiceSOS";
 import { useGps } from "@/hooks/use-gps";
-import { EMERGENCY_CATEGORIES, type AidCategory } from "@/lib/first-aid";
+import { AID_CATEGORIES, type AidCategory } from "@/lib/first-aid";
 
 export const Route = createFileRoute("/")({
   head: () => ({

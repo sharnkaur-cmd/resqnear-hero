@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResqHubRouteImport } from './routes/resq-hub'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as HeroesRouteImport } from './routes/heroes'
 import { Route as FirstAidRouteImport } from './routes/first-aid'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ResqHubRoute = ResqHubRouteImport.update({
+  id: '/resq-hub',
+  path: '/resq-hub',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/first-aid': typeof FirstAidRoute
   '/heroes': typeof HeroesRoute
   '/register': typeof RegisterRoute
+  '/resq-hub': typeof ResqHubRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/first-aid': typeof FirstAidRoute
   '/heroes': typeof HeroesRoute
   '/register': typeof RegisterRoute
+  '/resq-hub': typeof ResqHubRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/first-aid': typeof FirstAidRoute
   '/heroes': typeof HeroesRoute
   '/register': typeof RegisterRoute
+  '/resq-hub': typeof ResqHubRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/first-aid' | '/heroes' | '/register'
+  fullPaths:
+    '/' | '/demo' | '/first-aid' | '/heroes' | '/register' | '/resq-hub'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/first-aid' | '/heroes' | '/register'
-  id: '__root__' | '/' | '/demo' | '/first-aid' | '/heroes' | '/register'
+  to: '/' | '/demo' | '/first-aid' | '/heroes' | '/register' | '/resq-hub'
+  id:
+    | '__root__'
+    | '/'
+    | '/demo'
+    | '/first-aid'
+    | '/heroes'
+    | '/register'
+    | '/resq-hub'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +94,18 @@ export interface RootRouteChildren {
   FirstAidRoute: typeof FirstAidRoute
   HeroesRoute: typeof HeroesRoute
   RegisterRoute: typeof RegisterRoute
+  ResqHubRoute: typeof ResqHubRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/resq-hub': {
+      id: '/resq-hub'
+      path: '/resq-hub'
+      fullPath: '/resq-hub'
+      preLoaderRoute: typeof ResqHubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   FirstAidRoute: FirstAidRoute,
   HeroesRoute: HeroesRoute,
   RegisterRoute: RegisterRoute,
+  ResqHubRoute: ResqHubRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

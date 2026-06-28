@@ -45,6 +45,30 @@ function Confetti() {
 }
 
 function RegisterPage() {
+  const existingHero = localStorage.getItem('resqnear_hero');
+  if (existingHero) {
+    const hero = JSON.parse(existingHero);
+    return (
+      <main className="mx-auto max-w-xl px-5 pb-20 pt-8 text-center">
+        <div className="mt-16 mx-auto grid h-28 w-28 place-items-center rounded-full bg-gradient-to-br from-purple-500 to-blue-500 text-5xl font-black text-white shadow-lg mb-6">
+          {hero.name.charAt(0).toUpperCase()}
+        </div>
+        <h2 className="text-2xl font-extrabold text-white mb-2">Welcome back, {hero.name.split(' ')[0]}!</h2>
+        <p className="text-sm text-white/60 mb-4">You are already a registered ResQNear Hero</p>
+        <div className="inline-flex items-center gap-2 rounded-full bg-green-500/15 px-4 py-2 text-sm font-bold text-green-400 ring-1 ring-green-500/40 mb-6">
+          ✓ Verified Hero · {hero.skill}
+        </div>
+        <div className="mt-4 flex flex-col gap-3">
+          <a href="/" className="rounded-2xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 text-sm font-bold text-white">
+            ← Back to Home
+          </a>
+          <button onClick={() => { localStorage.removeItem('resqnear_hero'); window.location.reload(); }} className="rounded-2xl border border-white/20 px-6 py-3 text-sm font-bold text-white/70">
+            Update Registration
+          </button>
+        </div>
+      </main>
+    );
+  }
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

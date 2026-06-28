@@ -77,7 +77,7 @@ function RegisterPage() {
           <Heart className="h-7 w-7 text-white" />
         </div>
         <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Join <span className="text-gradient-primary">247 Heroes</span> saving lives
+          Join <span className="text-gradient-primary">24/7 Heroes</span> saving lives
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">Three minutes today. A lifetime for someone tomorrow.</p>
       </header>

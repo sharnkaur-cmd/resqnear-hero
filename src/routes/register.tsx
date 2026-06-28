@@ -63,13 +63,35 @@ function RegisterPage() {
       setSavedName(form.name);
       setSubmitted(true);
       setForm({ name: "", phone: "", skill: "Doctor", locality: "", pincode: "", available: true });
-      setTimeout(() => setSubmitted(false), 6000);
+      localStorage.setItem("resqnear_hero", JSON.stringify({ name: form.name, skill: form.skill, locality: form.locality }));
+      setTimeout(() => { setSubmitted(false); window.location.href = "/"; }, 3000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not save right now.";
       setError(msg);
     } finally {
       setSaving(false);
     }
+  }
+
+  const heroData = localStorage.getItem("resqnear_hero") ? JSON.parse(localStorage.getItem("resqnear_hero")!) : null;
+  if (heroData) {
+    return (
+      <main className="mx-auto max-w-xl px-5 pb-20 pt-8 text-center">
+        <div className="mt-16 mx-auto grid h-28 w-28 place-items-center rounded-full bg-gradient-blue-violet text-5xl font-black text-white shadow-glow-blue ring-4 ring-white/15 mb-6">
+          {heroData.name.charAt(0).toUpperCase()}
+        </div>
+        <h2 className="text-2xl font-extrabold text-white mb-2">Welcome back, {heroData.name.split(" ")[0]}! 👋</h2>
+        <p className="text-sm text-white/60 mb-4">You are already a registered ResQNear Hero</p>
+        <div className="inline-flex items-center gap-2 rounded-full bg-success/15 px-4 py-2 text-sm font-bold text-success ring-1 ring-success/40 mb-6">
+          <CheckCircle2 className="h-4 w-4" /> Verified Hero · {heroData.skill}
+        </div>
+        <p className="text-sm text-white/50 mb-8">📍 {heroData.locality}</p>
+        <div className="flex flex-col gap-3 max-w-xs mx-auto">
+          <a href="/" className="rounded-2xl bg-gradient-blue-violet px-6 py-3 text-sm font-bold text-white text-center shadow-glow-blue">← Back to Home</a>
+          <button onClick={() => { localStorage.removeItem("resqnear_hero"); window.location.reload(); }} className="rounded-2xl border border-white/20 px-6 py-3 text-sm font-bold text-white/70">Update Registration</button>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -145,7 +167,7 @@ function RegisterPage() {
               </div>
               <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-white">Welcome, {savedName.split(" ")[0] || "Hero"} 🎉</h2>
               <p className="mt-1 text-sm text-muted-foreground">You're now part of India's 24/7 hero network. We'll alert you when someone nearby needs help.</p>
-              <button onClick={() => setSubmitted(false)} className="mt-5 w-full rounded-2xl bg-gradient-blue-violet px-5 py-3 text-sm font-extrabold uppercase tracking-widest text-white shadow-glow-blue">Continue</button>
+              <button onClick={() => { setSubmitted(false); window.location.href = "/"; }} className="mt-5 w-full rounded-2xl bg-gradient-blue-violet px-5 py-3 text-sm font-extrabold uppercase tracking-widest text-white shadow-glow-blue">Go to Home</button>
             </div>
           </div>
         </>

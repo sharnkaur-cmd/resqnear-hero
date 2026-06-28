@@ -37,20 +37,24 @@ function useCounter(target: number, durationMs = 1600) {
 
 function guessCategoryFromText(text: string): AidCategory {
   const t = text.toLowerCase();
-  const pairs: Array<[RegExp, string]> = [
-    [/(heart|chest|cardiac|दिल|सीने)/, "Cardiac"],
-    [/(choke|choking|गला)/, "Choking"],
-    [/(burn|fire|जल|आग)/, "Burns"],
-    [/(bleed|blood|कट|खून)/, "Bleeding"],
-    [/(fracture|break|bone|हड्डी)/, "Fracture"],
-    [/(faint|unconscious|बेहोश)/, "Unconscious"],
-  ];
-  for (const [re, key] of pairs) {
-    if (re.test(t)) {
-      const hit = AID_CATEGORIES.find((c) => c.title.toLowerCase().includes(key.toLowerCase()));
-      if (hit) return hit;
-    }
+
+  if (t.includes("heart") || t.includes("chest") || t.includes("cardiac") || t.includes("pain")) {
+    return AID_CATEGORIES.find(c => c.title === "Cardiac") ?? AID_CATEGORIES[0];
   }
+
+  if (t.includes("fire") || t.includes("house") || t.includes("burn") || t.includes("आग")) {
+    return AID_CATEGORIES.find(c => c.title === "Burns") ?? AID_CATEGORIES[0];
+  }
+
+
+  if (t.includes("accident") || t.includes("crash") || t.includes("road")) {
+    return AID_CATEGORIES.find(c => c.title === "Fracture") ?? AID_CATEGORIES[0];
+  }
+
+  if (t.includes("blood") || t.includes("bleeding")) {
+    return AID_CATEGORIES.find(c => c.title === "Bleeding") ?? AID_CATEGORIES[0];
+  }
+
   return AID_CATEGORIES[0];
 }
 
@@ -128,7 +132,7 @@ function HomePage() {
         <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <MapPin className="h-3 w-3 text-[#4cc9f0]" />
           {state.status === "verified"
-            ? `${state.lat.toFixed(3)}°, ${state.lon.toFixed(3)}° · ±${Math.round(state.accuracy)}m`
+            ? `Your location detected (${Math.round(state.accuracy)}m accuracy)`
             : "Detecting your location…"}
         </p>
 
@@ -180,4 +184,4 @@ function StatCard({ icon: Icon, value, label, sub, tint, border }: { icon: React
       <div className="text-xs text-muted-foreground">{sub}</div>
     </div>
   );
-}
+}             

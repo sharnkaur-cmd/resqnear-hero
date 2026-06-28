@@ -163,17 +163,49 @@ function ResQHubPage() {
   const [demoActive, setDemoActive] = useState(false);
   const [demoStep, setDemoStep] = useState(-1);
   const [emergencyType, setEmergencyType] = useState("Cardiac");
+  const [selectedLanguage, setSelectedLanguage] = useState("en-US");
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   useEffect(() => {
     const backup = localStorage.getItem("medical_profile_backup");
     const savedContacts = localStorage.getItem("panic_contacts");
     const savedCourses = localStorage.getItem("learn_completion");
     const savedDonors = localStorage.getItem("blood_donor_backup");
+    const savedLanguage = localStorage.getItem("speech_language");
 
     if (backup) setProfile(JSON.parse(backup) as MedicalProfile);
     if (savedContacts) setPanicContacts(JSON.parse(savedContacts) as PanicContact[]);
     if (savedCourses) setCompletedCourses(JSON.parse(savedCourses) as Record<string, boolean>);
     if (savedDonors) setLocalDonors(JSON.parse(savedDonors) as typeof DEMO_DONORS);
+    if (savedLanguage) setSelectedLanguage(savedLanguage);
+  }, []);
+
+  useEffect(() => {
+    if (!window.speechSynthesis) return;
+
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      setVoices(availableVoices);
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("speech_language", selectedLanguage);
+  }, [selectedLanguage]);
+
+  useEffect(() => {
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -289,7 +321,20 @@ function ResQHubPage() {
   function speakCourse(title: string, steps: string[]) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${title}. ${steps.join(" ")}`));
+
+    const text = `${title}. ${steps.join(". ")}`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = selectedLanguage;
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    const matchingVoice = voices.find((voice) => voice.lang === selectedLanguage);
+    if (matchingVoice) {
+      utterance.voice = matchingVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
   }
 
   function completeCourse(id: string) {
@@ -450,6 +495,20 @@ function ResQHubPage() {
         </FeatureCard>
 
         <FeatureCard icon={BookOpen} title="Learn" subtitle="Emergency skills with progress">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Voice Language</span>
+              <select
+                value={selectedLanguage}
+                onChange={(event) => setSelectedLanguage(event.target.value)}
+                className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs font-semibold outline-none"
+              >
+                <option value="en-US">English</option>
+                <option value="hi-IN">हिन्दी</option>
+                <option value="pa-IN">ਪੰਜਾਬੀ</option>
+              </select>
+            </div>
+          </div>
           <div className="mb-4">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
               <span>Completion</span>

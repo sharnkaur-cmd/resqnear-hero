@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Volume2, Square, Phone } from "lucide-react";
 import { AID_CATEGORIES, EMERGENCY_NUMBERS } from "@/lib/first-aid";
@@ -26,11 +26,21 @@ const GRADIENTS: Record<string, string> = {
 function FirstAidPage() {
   const [active, setActive] = useState(AID_CATEGORIES[0]);
   const [speaking, setSpeaking] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("en-US");
 
-  function toggleSpeak() {
+  useEffect(() => {
+    const saved = localStorage.getItem("first_aid_speech_language");
+    if (saved) setSelectedLanguage(saved);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("first_aid_speech_language", selectedLanguage);
+  }, [selectedLanguage]);
+
+  async function toggleSpeak() {
     if (speaking) { stopSpeaking(); setSpeaking(false); return; }
     const text = `${active.title} first aid. ${active.steps.map((s, i) => `Step ${i + 1}. ${s}`).join(" ")}`;
-    speak(text);
+    await speak(text, selectedLanguage);
     setSpeaking(true);
     setTimeout(() => setSpeaking(false), text.length * 60);
   }
@@ -68,9 +78,20 @@ function FirstAidPage() {
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Step-by-step</p>
             <h2 className="truncate text-xl font-extrabold">{active.emoji} {active.title}</h2>
           </div>
-          <button onClick={toggleSpeak} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-blue-violet px-4 py-2.5 text-sm font-bold text-white shadow-glow-blue">
-            {speaking ? <><Square className="h-4 w-4" /> Stop</> : <><Volume2 className="h-4 w-4" /> Read Aloud</>}
-          </button>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs font-semibold outline-none"
+            >
+              <option value="en-US">English</option>
+              <option value="hi-IN">हिन्दी</option>
+              <option value="pa-IN">ਪੰਜਾਬੀ</option>
+            </select>
+            <button onClick={toggleSpeak} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-blue-violet px-4 py-2.5 text-sm font-bold text-white shadow-glow-blue">
+              {speaking ? <><Square className="h-4 w-4" /> Stop</> : <><Volume2 className="h-4 w-4" /> Read Aloud</>}
+            </button>
+          </div>
         </div>
 
         <ol className="mt-4 space-y-2">

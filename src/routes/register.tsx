@@ -7,7 +7,7 @@ export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
       { title: "Become a Hero — ResQNear" },
-      { name: "description", content: "Join 247 trained heroes saving lives in your neighbourhood. Register in under a minute." },
+      { name: "description", content: "Join 24/7 trained heroes saving lives in your neighbourhood. Register in under a minute." },
     ],
   }),
   component: RegisterPage,

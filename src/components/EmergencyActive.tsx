@@ -210,40 +210,87 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
         <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-blue-violet p-5 text-white shadow-glow-blue">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">Nearest Hero Matched</p>
-            <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">Top Hero</span>
+            <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-black text-white">{matchScore}% Match</span>
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
             <div className="min-w-0">
               <p className="truncate text-xl font-extrabold">{matched.name}</p>
               <p className="text-sm text-white/85">{matched.skill}</p>
               <p className="mt-1 flex items-center gap-1 text-sm text-white/80">
-                <MapPin className="h-3.5 w-3.5" /> {matched.distanceKm.toFixed(2)} km · ETA {matched.etaMin} min · {matched.area}
+                <MapPin className="h-3.5 w-3.5" /> {matched.distanceKm.toFixed(2)} km · ETA {matched.etaMin} min
               </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {[matched.skill.includes("CPR") || matched.skill.includes("Doctor") ? "CPR Trained" : matched.skill, matched.distanceKm < 0.6 ? "Nearby" : "On route", "Available Now"].map((b) => (
+                  <span key={b} className="inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-success ring-1 ring-success/40">
+                    <CheckCircle2 className="h-3 w-3" /> {b}
+                  </span>
+                ))}
+              </div>
             </div>
             <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/15 text-2xl font-black text-white backdrop-blur">
-              {hero.name.split(" ").slice(-1)[0][0]}
+              {matched.name.trim()[0]}
             </div>
           </div>
 
           <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15">
             <div className="flex items-center gap-2 text-sm text-white/90">
-              <Clock className="h-4 w-4" /> ETA countdown
+              <Clock className="h-4 w-4" /> Rescue countdown
             </div>
-            <div className="font-mono text-2xl font-bold tabular-nums text-white">{formatTime(seconds)}</div>
+            <div className={`font-mono text-2xl font-bold tabular-nums ${seconds <= 20 ? "text-[#FFB830]" : "text-white"}`}>{formatTime(seconds)}</div>
           </div>
 
           <a
-            href="tel:112"
+            href={`tel:${matched.phone ?? "112"}`}
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#00D4AA] px-5 py-4 text-lg font-extrabold uppercase tracking-wider text-[#0F0F1A] shadow-glow-green transition active:scale-[0.98]"
           >
-            <Phone className="h-5 w-5" /> CALL HERO · 112
+            <Phone className="h-5 w-5" /> Call Hero
           </a>
         </div>
 
+        {/* Rescue timeline */}
+        <div className="mt-4 rounded-3xl glass-card p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">2-Minute Rescue Timeline</p>
+          <ol className="mt-3 space-y-2">
+            {timeline.map((s, i) => {
+              const done = elapsed >= s.t;
+              return (
+                <li key={i} className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition ${done ? "border-success/40 bg-success/10" : "border-white/10 bg-white/5"}`}>
+                  <span className={`grid h-6 w-6 place-items-center rounded-full ${done ? "bg-success text-[#0F0F1A]" : "bg-white/10 text-white/50"}`}>
+                    {done ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+                  </span>
+                  <span className={`text-sm font-semibold ${done ? "text-white" : "text-white/60"}`}>{s.label}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+
+        {/* Auto-escalation when timer hits 0 */}
+        {escalated && (
+          <div className="mt-4 animate-fade-up rounded-3xl border border-[#FF2D55]/40 bg-[#FF2D55]/10 p-5">
+            <div className="flex items-center gap-2 text-[#FF8FA3]">
+              <AlertTriangle className="h-5 w-5" />
+              <p className="text-sm font-extrabold uppercase tracking-widest">Escalating to emergency services</p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[{ n: "108", l: "Ambulance" }, { n: "112", l: "Emergency" }, { n: "101", l: "Fire" }, { n: "100", l: "Police" }].map((x) => (
+                <a key={x.n} href={`tel:${x.n}`} className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-3 py-3 text-sm font-extrabold text-white ring-1 ring-white/15 transition hover:scale-[1.02] active:scale-95">
+                  <Phone className="h-4 w-4" /> CALL {x.n} · {x.l}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* First aid steps */}
         <div className="mt-6">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-white/85">
-            <Activity className="h-4 w-4 text-[#4cc9f0]" /> AI First-Aid Guidance
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-white/85">
+              <Activity className="h-4 w-4 text-[#4cc9f0]" /> AI First-Aid Guidance
+            </div>
+            <button onClick={() => { stopSpeaking(); speak(steps.join(". ")); }} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white hover:bg-white/15">
+              <Volume2 className="h-3.5 w-3.5" /> Read Aloud
+            </button>
           </div>
           <ol className="mt-3 space-y-2">
             {steps.map((step, i) => (

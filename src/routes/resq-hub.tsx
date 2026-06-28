@@ -287,9 +287,21 @@ function ResQHubPage() {
   }
 
   function speakCourse(title: string, steps: string[]) {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${title}. ${steps.join(" ")}`));
+  if (!("speechSynthesis" in window)) {
+    alert("Speech not supported in this browser");
+    return;
+  }
+
+  const text = `${title}. ${steps.join(". ")}`;
+
+  window.speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 0.9;
+  speech.pitch = 1;
+  speech.volume = 1;
+
+  window.speechSynthesis.speak(speech);
   }
 
   function completeCourse(id: string) {
@@ -464,7 +476,11 @@ function ResQHubPage() {
               <div key={course.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-bold">{course.title}</p>
-                  <button onClick={() => speakCourse(course.title, course.steps)} className="grid h-9 w-9 place-items-center rounded-xl bg-white/10">
+                  <button 
+  type="button"
+  onClick={() => speakCourse(course.title, course.steps)}
+  className="grid h-9 w-9 place-items-center rounded-xl bg-white/10"
+> className="grid h-9 w-9 place-items-center rounded-xl bg-white/10"
                     <Volume2 className="h-4 w-4" />
                   </button>
                 </div>

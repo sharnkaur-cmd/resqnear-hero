@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { 
+  useEffect, 
+  useMemo, 
+  useState, 
+  type ChangeEvent, 
+  type FormEvent 
+} from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { QRCodeCanvas } from "qrcode.react";
 import {
@@ -19,6 +25,7 @@ import {
   Stethoscope,
   Volume2,
   X,
+  Languages,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -163,6 +170,7 @@ function ResQHubPage() {
   const [demoActive, setDemoActive] = useState(false);
   const [demoStep, setDemoStep] = useState(-1);
   const [emergencyType, setEmergencyType] = useState("Cardiac");
+  const [voiceLang, setVoiceLang] = useState("en-US");
 
   useEffect(() => {
     const backup = localStorage.getItem("medical_profile_backup");
@@ -287,9 +295,38 @@ function ResQHubPage() {
   }
 
   function speakCourse(title: string, steps: string[]) {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${title}. ${steps.join(" ")}`));
+
+  if (!("speechSynthesis" in window)) {
+    alert("Voice assistant not supported in this browser");
+    return;
+  }
+
+  const text = `
+  ResQNear emergency learning.
+  Topic: ${title}.
+  ${steps.join(". ")}
+  `;
+
+  const speech = new SpeechSynthesisUtterance(text);
+
+  speech.lang = voiceLang;
+  speech.rate = 0.9;
+  speech.pitch = 1;
+  speech.volume = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+
+  const englishVoice = voices.find(
+    voice => voice.lang.includes("en")
+  );
+
+  if (englishVoice) {
+    speech.voice = englishVoice;
+  }
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(speech);
+
   }
 
   function completeCourse(id: string) {
@@ -450,6 +487,15 @@ function ResQHubPage() {
         </FeatureCard>
 
         <FeatureCard icon={BookOpen} title="Learn" subtitle="Emergency skills with progress">
+          <select
+value={voiceLang}
+onChange={(e)=>setVoiceLang(e.target.value)}
+className="rounded-xl bg-white/5 p-2 text-sm"
+>
+<option value="en-US">English Voice</option>
+<option value="hi-IN">Hindi Voice</option>
+<option value="pa-IN">Punjabi Voice</option>
+</select>
           <div className="mb-4">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
               <span>Completion</span>

@@ -50,9 +50,11 @@ export function useGps() {
           timestamp: best.timestamp,
         });
       } else {
-        setState((s) => (s.status === "requesting"
-          ? { status: "error", message: "Couldn't lock your location. Try again." }
-          : s));
+        setState((s) =>
+          s.status === "requesting"
+            ? { status: "error", message: "Couldn't lock your location. Try again." }
+            : s,
+        );
       }
     }, 8000);
   }, []);

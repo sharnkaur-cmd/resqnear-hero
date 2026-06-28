@@ -21,7 +21,10 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-gradient-primary">404</h1>
         <p className="mt-2 text-sm text-muted-foreground">Page not found.</p>
-        <Link to="/" className="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-white shadow-glow-red">
+        <Link
+          to="/"
+          className="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-white shadow-glow-red"
+        >
           Go home
         </Link>
       </div>
@@ -31,15 +34,30 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
-  useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
+  useEffect(() => {
+    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+  }, [error]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold">This page didn't load</h1>
         <p className="mt-2 text-sm text-muted-foreground">Something went wrong on our end.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="rounded-xl bg-gradient-primary px-4 py-2 text-sm font-semibold text-white shadow-glow-red">Try again</button>
-          <a href="/" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium backdrop-blur">Go home</a>
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="rounded-xl bg-gradient-primary px-4 py-2 text-sm font-semibold text-white shadow-glow-red"
+          >
+            Try again
+          </button>
+          <a
+            href="/"
+            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium backdrop-blur"
+          >
+            Go home
+          </a>
         </div>
       </div>
     </div>
@@ -52,13 +70,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "ResQNear — Your nearest hero. In seconds." },
-      { name: "description", content: "Hyperlocal AI emergency first responder app for India. Tap SOS and reach a trained hero near you in seconds." },
+      {
+        name: "description",
+        content:
+          "Hyperlocal AI emergency first responder app for India. Tap SOS and reach a trained hero near you in seconds.",
+      },
       { name: "theme-color", content: "#0F0F1A" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "ResQNear" },
       { property: "og:title", content: "ResQNear — Your nearest hero. In seconds." },
-      { property: "og:description", content: "Hyperlocal AI emergency first responder app for India." },
+      {
+        property: "og:description",
+        content: "Hyperlocal AI emergency first responder app for India.",
+      },
       { property: "og:type", content: "website" },
     ],
     links: [
@@ -68,8 +93,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/icon-192.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" },
-      { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", crossOrigin: "" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+        crossOrigin: "",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -81,8 +113,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <head><HeadContent /></head>
-      <body>{children}<Scripts /></body>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
     </html>
   );
 }
@@ -103,25 +140,39 @@ function NavBar() {
             <Shield className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-base font-extrabold tracking-tight text-gradient-primary">ResQNear</span>
-            <span className="hidden text-[10px] text-muted-foreground sm:block">Your nearest hero.</span>
+            <span className="text-base font-extrabold tracking-tight text-gradient-primary">
+              ResQNear
+            </span>
+            <span className="hidden text-[10px] text-muted-foreground sm:block">
+              Your nearest hero.
+            </span>
           </div>
         </Link>
         <nav className="flex items-center gap-0.5 sm:gap-1">
-          <Link to="/" className={baseLink} activeOptions={{ exact: true }} activeProps={activeProps}>
-            <Home className="h-4 w-4" /><span>Home</span>
+          <Link
+            to="/"
+            className={baseLink}
+            activeOptions={{ exact: true }}
+            activeProps={activeProps}
+          >
+            <Home className="h-4 w-4" />
+            <span>Home</span>
           </Link>
           <Link to="/heroes" className={baseLink} activeProps={activeProps}>
-            <Trophy className="h-4 w-4" /><span>Heroes</span>
+            <Trophy className="h-4 w-4" />
+            <span>Heroes</span>
           </Link>
           <Link to="/resq-hub" className={baseLink} activeProps={activeProps}>
-            <Shield className="h-4 w-4" /><span>ResQ Hub</span>
+            <Shield className="h-4 w-4" />
+            <span>ResQ Hub</span>
           </Link>
           <Link to="/register" className={baseLink} activeProps={activeProps}>
-            <UserPlus className="h-4 w-4" /><span>Register</span>
+            <UserPlus className="h-4 w-4" />
+            <span>Register</span>
           </Link>
           <Link to="/demo" className={baseLink} activeProps={activeProps}>
-            <Sparkles className="h-4 w-4" /><span>Demo</span>
+            <Sparkles className="h-4 w-4" />
+            <span>Demo</span>
           </Link>
         </nav>
       </div>
@@ -136,7 +187,10 @@ function OfflineBanner() {
     const down = () => setOnline(false);
     window.addEventListener("online", up);
     window.addEventListener("offline", down);
-    return () => { window.removeEventListener("online", up); window.removeEventListener("offline", down); };
+    return () => {
+      window.removeEventListener("online", up);
+      window.removeEventListener("offline", down);
+    };
   }, []);
   if (online) return null;
   return (
@@ -150,7 +204,9 @@ function OfflineBanner() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useEffect(() => { void registerServiceWorker(); }, []);
+  useEffect(() => {
+    void registerServiceWorker();
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <div className="relative min-h-screen overflow-x-hidden bg-aurora text-foreground">

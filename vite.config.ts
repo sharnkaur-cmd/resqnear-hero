@@ -10,7 +10,7 @@ process.stderr.write = ((chunk: string | Uint8Array, ...args: unknown[]) => {
   if (message.includes(inlineDynamicImportsWarning) && message.includes(codeSplittingWarning)) {
     return true;
   }
-  return originalStderrWrite(chunk, ...args as []);
+  return originalStderrWrite(chunk, ...(args as []));
 }) as typeof process.stderr.write;
 
 const logger = createLogger();

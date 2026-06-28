@@ -18,11 +18,21 @@ export function EmergencyTypeModal({ onSelect, onClose }: Props) {
       <div className="animate-fade-up w-full max-w-lg overflow-hidden rounded-t-3xl glass-card p-6 sm:rounded-3xl">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gradient-sos">SOS Activated</p>
-            <h2 className="mt-1.5 text-2xl font-extrabold tracking-tight">What is the emergency?</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Tap to alert the nearest trained hero.</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gradient-sos">
+              SOS Activated
+            </p>
+            <h2 className="mt-1.5 text-2xl font-extrabold tracking-tight">
+              What is the emergency?
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Tap to alert the nearest trained hero.
+            </p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 hover:bg-white/10">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 hover:bg-white/10"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>

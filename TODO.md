@@ -3,4 +3,3 @@
 - [ ] Validate stop behavior and repeated clicks
 - [ ] Run local demo and confirm sound output in at least one browser
 - [ ] Add demo steps for “before pushing to GitHub”
-

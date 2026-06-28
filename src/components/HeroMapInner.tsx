@@ -8,7 +8,9 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
   const others = nearby.slice(1);
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-2xl border border-white/10 ${className ?? "h-72"}`}>
+    <div
+      className={`relative w-full overflow-hidden rounded-2xl border border-white/10 ${className ?? "h-72"}`}
+    >
       <MapContainer
         center={center}
         zoom={15}
@@ -20,9 +22,21 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
 
         {/* Pulsing search rings around user */}
-        <Circle center={center} radius={800} pathOptions={{ color: "#E94560", weight: 1, fillColor: "#E94560", fillOpacity: 0.06 }} />
-        <Circle center={center} radius={400} pathOptions={{ color: "#FF2D55", weight: 1, fillColor: "#FF2D55", fillOpacity: 0.05 }} />
-        <Circle center={center} radius={150} pathOptions={{ color: "#FF2D55", weight: 1.5, fillOpacity: 0 }} />
+        <Circle
+          center={center}
+          radius={800}
+          pathOptions={{ color: "#E94560", weight: 1, fillColor: "#E94560", fillOpacity: 0.06 }}
+        />
+        <Circle
+          center={center}
+          radius={400}
+          pathOptions={{ color: "#FF2D55", weight: 1, fillColor: "#FF2D55", fillOpacity: 0.05 }}
+        />
+        <Circle
+          center={center}
+          radius={150}
+          pathOptions={{ color: "#FF2D55", weight: 1.5, fillOpacity: 0 }}
+        />
 
         {/* User marker — red pulsing */}
         <CircleMarker
@@ -31,7 +45,12 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
           pathOptions={{ color: "#fff", weight: 3, fillColor: "#E94560", fillOpacity: 1 }}
           className="leaflet-pulse-user"
         >
-          <Tooltip permanent direction="top" offset={[0, -12]} className="!bg-[#0F0F1A] !text-white !border-white/10">
+          <Tooltip
+            permanent
+            direction="top"
+            offset={[0, -12]}
+            className="!bg-[#0F0F1A] !text-white !border-white/10"
+          >
             You · SOS
           </Tooltip>
         </CircleMarker>
@@ -44,7 +63,11 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
             radius={8}
             pathOptions={{ color: "#fff", weight: 2, fillColor: "#4361ee", fillOpacity: 0.95 }}
           >
-            <Tooltip direction="top" offset={[0, -10]} className="!bg-[#0F0F1A] !text-white !border-white/10">
+            <Tooltip
+              direction="top"
+              offset={[0, -10]}
+              className="!bg-[#0F0F1A] !text-white !border-white/10"
+            >
               {h.name.split(" ").slice(0, 2).join(" ")} · {h.etaMin}m
             </Tooltip>
           </CircleMarker>
@@ -57,7 +80,12 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
             radius={11}
             pathOptions={{ color: "#fff", weight: 3, fillColor: "#7209b7", fillOpacity: 1 }}
           >
-            <Tooltip permanent direction="top" offset={[0, -12]} className="!bg-[#0F0F1A] !text-white !border-white/10">
+            <Tooltip
+              permanent
+              direction="top"
+              offset={[0, -12]}
+              className="!bg-[#0F0F1A] !text-white !border-white/10"
+            >
               {matched.name.split(" ").slice(0, 2).join(" ")} · {matched.etaMin} min
             </Tooltip>
           </CircleMarker>

@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { X, Phone, Mic, AlertTriangle, Cpu, Loader2, MapPin, Clock, Navigation, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  Phone,
+  Mic,
+  AlertTriangle,
+  Cpu,
+  Loader2,
+  MapPin,
+  Clock,
+  Navigation,
+  CheckCircle2,
+} from "lucide-react";
 import type { AidCategory } from "@/lib/first-aid";
 import type { EmergencyTypeLabel } from "@/lib/aiEmergency";
 import { HeroMap } from "@/components/HeroMap";
@@ -135,9 +146,7 @@ export function VoiceEmergencyActive({
                 {category.emoji} {label}
               </p>
               <p className="mt-2 text-xs text-white/60">You said: “{speech}”</p>
-              {locationLabel && (
-                <p className="mt-1 text-xs text-white/50">{locationLabel}</p>
-              )}
+              {locationLabel && <p className="mt-1 text-xs text-white/50">{locationLabel}</p>}
             </>
           )}
         </div>
@@ -145,7 +154,13 @@ export function VoiceEmergencyActive({
         {!loading && (
           <>
             <div className="mt-4">
-              <HeroMap userLat={userLat} userLon={userLon} hero={hero} nearby={nearby} className="h-[300px]" />
+              <HeroMap
+                userLat={userLat}
+                userLon={userLon}
+                hero={hero}
+                nearby={nearby}
+                className="h-[300px]"
+              />
             </div>
 
             <div className="mt-4 rounded-3xl glass-card p-4">
@@ -153,20 +168,28 @@ export function VoiceEmergencyActive({
                 <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
                   {nearby.length} Hospitals Nearby
                 </p>
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-success">Live</span>
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-success">
+                  Live
+                </span>
               </div>
               <ul className="mt-3 space-y-2">
                 {nearby.map((h, i) => (
                   <li
                     key={h.name}
                     className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 ${
-                      i === 0 ? "border-[#7209b7]/60 bg-gradient-blue-violet/20" : "border-white/10 bg-white/[0.04]"
+                      i === 0
+                        ? "border-[#7209b7]/60 bg-gradient-blue-violet/20"
+                        : "border-white/10 bg-white/[0.04]"
                     }`}
                   >
-                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${i === 0 ? "bg-[#a78bfa]" : "bg-[#4361ee]"}`} />
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${i === 0 ? "bg-[#a78bfa]" : "bg-[#4361ee]"}`}
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-white">{h.name}</p>
-                      <p className="truncate text-[11px] text-white/70">{h.skill} · {h.area}</p>
+                      <p className="truncate text-[11px] text-white/70">
+                        {h.skill} · {h.area}
+                      </p>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="flex items-center justify-end gap-1 text-xs font-bold text-white">
@@ -183,19 +206,33 @@ export function VoiceEmergencyActive({
 
             <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-blue-violet p-5 text-white shadow-glow-blue">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">Nearest Hospital</p>
-                <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-black text-white">{matched.distanceKm.toFixed(2)} km</span>
+                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">
+                  Nearest Hospital
+                </p>
+                <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-black text-white">
+                  {matched.distanceKm.toFixed(2)} km
+                </span>
               </div>
               <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
                 <div className="min-w-0">
                   <p className="truncate text-xl font-extrabold">{matched.name}</p>
                   <p className="text-sm text-white/85">{matched.skill}</p>
                   <p className="mt-1 flex items-center gap-1 text-sm text-white/80">
-                    <MapPin className="h-3.5 w-3.5" /> {matched.distanceKm.toFixed(2)} km · ETA {matched.etaMin} min
+                    <MapPin className="h-3.5 w-3.5" /> {matched.distanceKm.toFixed(2)} km · ETA{" "}
+                    {matched.etaMin} min
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {[matched.skill.includes("CPR") || matched.skill.includes("Doctor") ? "CPR Trained" : matched.skill, matched.distanceKm < 0.6 ? "Nearby" : "On route", "Available Now"].map((b) => (
-                      <span key={b} className="inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-success ring-1 ring-success/40">
+                    {[
+                      matched.skill.includes("CPR") || matched.skill.includes("Doctor")
+                        ? "CPR Trained"
+                        : matched.skill,
+                      matched.distanceKm < 0.6 ? "Nearby" : "On route",
+                      "Available Now",
+                    ].map((b) => (
+                      <span
+                        key={b}
+                        className="inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-success ring-1 ring-success/40"
+                      >
                         <CheckCircle2 className="h-3 w-3" /> {b}
                       </span>
                     ))}
@@ -228,9 +265,7 @@ export function VoiceEmergencyActive({
 
             <div
               className={`mt-4 rounded-3xl p-5 ${
-                escalated
-                  ? "border border-[#FF2D55]/40 bg-[#FF2D55]/10"
-                  : "glass-card"
+                escalated ? "border border-[#FF2D55]/40 bg-[#FF2D55]/10" : "glass-card"
               }`}
             >
               {escalated ? (

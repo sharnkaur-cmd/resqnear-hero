@@ -1,6 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Phone, X, MapPin, Clock, Activity, ShieldAlert, Cpu, Loader2, Navigation, CheckCircle2, AlertTriangle, Volume2 } from "lucide-react";
+import {
+  Phone,
+  X,
+  MapPin,
+  Clock,
+  Activity,
+  ShieldAlert,
+  Cpu,
+  Loader2,
+  Navigation,
+  CheckCircle2,
+  AlertTriangle,
+  Volume2,
+} from "lucide-react";
 import type { AidCategory } from "@/lib/first-aid";
 import { pickRandomHero, type Hero } from "@/lib/heroes";
 import { HeroMap } from "@/components/HeroMap";
@@ -127,8 +140,12 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
           severity_score: r.severityScore,
         }).catch(() => {});
       })
-      .catch(() => { if (!cancelled) setLoadingAi(false); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setLoadingAi(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [analyze, category.title, hero.area, hero.name, locationLabel, userLat, userLon]);
 
   const steps = analysis?.firstAidSteps ?? category.steps;
@@ -144,7 +161,11 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
             <span className="h-2 w-2 animate-pulse-soft rounded-full bg-[#FF2D55]" />
             Live · Broadcasting
           </div>
-          <button onClick={onClose} aria-label="Cancel emergency" className="grid h-10 w-10 place-items-center rounded-full glass hover:bg-white/15">
+          <button
+            onClick={onClose}
+            aria-label="Cancel emergency"
+            className="grid h-10 w-10 place-items-center rounded-full glass hover:bg-white/15"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -166,14 +187,18 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[#4cc9f0]" />
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">AI Triage · Gemini</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                AI Triage · Gemini
+              </p>
             </div>
             {loadingAi ? (
               <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" /> Analysing
               </span>
             ) : analysis ? (
-              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${SEVERITY_TINT[analysis.severity] ?? "bg-gradient-blue text-white"}`}>
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${SEVERITY_TINT[analysis.severity] ?? "bg-gradient-blue text-white"}`}
+              >
                 {analysis.severity}
               </span>
             ) : null}
@@ -202,7 +227,13 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
 
         {/* Live Map — fullscreen-feel */}
         <div className="mt-4">
-          <HeroMap userLat={userLat} userLon={userLon} hero={hero} nearby={nearby} className="h-[420px]" />
+          <HeroMap
+            userLat={userLat}
+            userLon={userLon}
+            hero={hero}
+            nearby={nearby}
+            className="h-[420px]"
+          />
         </div>
 
         {/* Nearby heroes list with distance + ETA */}
@@ -211,20 +242,28 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
               {nearby.length} Hospitals Nearby
             </p>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-success">Live</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-success">
+              Live
+            </span>
           </div>
           <ul className="mt-3 space-y-2">
             {nearby.map((h, i) => (
               <li
                 key={h.name}
                 className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 ${
-                  i === 0 ? "border-[#7209b7]/60 bg-gradient-blue-violet/20" : "border-white/10 bg-white/[0.04]"
+                  i === 0
+                    ? "border-[#7209b7]/60 bg-gradient-blue-violet/20"
+                    : "border-white/10 bg-white/[0.04]"
                 }`}
               >
-                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${i === 0 ? "bg-[#a78bfa]" : "bg-[#4361ee]"}`} />
+                <span
+                  className={`h-2.5 w-2.5 shrink-0 rounded-full ${i === 0 ? "bg-[#a78bfa]" : "bg-[#4361ee]"}`}
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-white">{h.name}</p>
-                  <p className="truncate text-[11px] text-white/70">{h.skill} · {h.area}</p>
+                  <p className="truncate text-[11px] text-white/70">
+                    {h.skill} · {h.area}
+                  </p>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="flex items-center justify-end gap-1 text-xs font-bold text-white">
@@ -242,19 +281,33 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
         {/* Matched hero card — blue/violet gradient (no red) */}
         <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-blue-violet p-5 text-white shadow-glow-blue">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">Nearest Hospital</p>
-            <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-black text-white">{matchScore}% Match</span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/85">
+              Nearest Hospital
+            </p>
+            <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-black text-white">
+              {matchScore}% Match
+            </span>
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
             <div className="min-w-0">
               <p className="truncate text-xl font-extrabold">{matched.name}</p>
               <p className="text-sm text-white/85">{matched.skill}</p>
               <p className="mt-1 flex items-center gap-1 text-sm text-white/80">
-                <MapPin className="h-3.5 w-3.5" /> {matched.distanceKm.toFixed(2)} km · ETA {matched.etaMin} min
+                <MapPin className="h-3.5 w-3.5" /> {matched.distanceKm.toFixed(2)} km · ETA{" "}
+                {matched.etaMin} min
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {[matched.skill.includes("CPR") || matched.skill.includes("Doctor") ? "CPR Trained" : matched.skill, matched.distanceKm < 0.6 ? "Nearby" : "On route", "Available Now"].map((b) => (
-                  <span key={b} className="inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-success ring-1 ring-success/40">
+                {[
+                  matched.skill.includes("CPR") || matched.skill.includes("Doctor")
+                    ? "CPR Trained"
+                    : matched.skill,
+                  matched.distanceKm < 0.6 ? "Nearby" : "On route",
+                  "Available Now",
+                ].map((b) => (
+                  <span
+                    key={b}
+                    className="inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-success ring-1 ring-success/40"
+                  >
                     <CheckCircle2 className="h-3 w-3" /> {b}
                   </span>
                 ))}
@@ -269,7 +322,11 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
             <div className="flex items-center gap-2 text-sm text-white/90">
               <Clock className="h-4 w-4" /> Rescue countdown
             </div>
-            <div className={`font-mono text-2xl font-bold tabular-nums ${seconds <= 20 ? "text-[#FFB830]" : "text-white"}`}>{formatTime(seconds)}</div>
+            <div
+              className={`font-mono text-2xl font-bold tabular-nums ${seconds <= 20 ? "text-[#FFB830]" : "text-white"}`}
+            >
+              {formatTime(seconds)}
+            </div>
           </div>
 
           <a
@@ -282,16 +339,27 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
 
         {/* Rescue timeline */}
         <div className="mt-4 rounded-3xl glass-card p-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">2-Minute Rescue Timeline</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+            2-Minute Rescue Timeline
+          </p>
           <ol className="mt-3 space-y-2">
             {timeline.map((s, i) => {
               const done = elapsed >= s.t;
               return (
-                <li key={i} className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition ${done ? "border-success/40 bg-success/10" : "border-white/10 bg-white/5"}`}>
-                  <span className={`grid h-6 w-6 place-items-center rounded-full ${done ? "bg-success text-[#0F0F1A]" : "bg-white/10 text-white/50"}`}>
+                <li
+                  key={i}
+                  className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition ${done ? "border-success/40 bg-success/10" : "border-white/10 bg-white/5"}`}
+                >
+                  <span
+                    className={`grid h-6 w-6 place-items-center rounded-full ${done ? "bg-success text-[#0F0F1A]" : "bg-white/10 text-white/50"}`}
+                  >
                     {done ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                   </span>
-                  <span className={`text-sm font-semibold ${done ? "text-white" : "text-white/60"}`}>{s.label}</span>
+                  <span
+                    className={`text-sm font-semibold ${done ? "text-white" : "text-white/60"}`}
+                  >
+                    {s.label}
+                  </span>
                 </li>
               );
             })}
@@ -303,11 +371,22 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
           <div className="mt-4 animate-fade-up rounded-3xl border border-[#FF2D55]/40 bg-[#FF2D55]/10 p-5">
             <div className="flex items-center gap-2 text-[#FF8FA3]">
               <AlertTriangle className="h-5 w-5" />
-              <p className="text-sm font-extrabold uppercase tracking-widest">Escalating to emergency services</p>
+              <p className="text-sm font-extrabold uppercase tracking-widest">
+                Escalating to emergency services
+              </p>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              {[{ n: "108", l: "Ambulance" }, { n: "112", l: "Emergency" }, { n: "101", l: "Fire" }, { n: "100", l: "Police" }].map((x) => (
-                <a key={x.n} href={`tel:${x.n}`} className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-3 py-3 text-sm font-extrabold text-white ring-1 ring-white/15 transition hover:scale-[1.02] active:scale-95">
+              {[
+                { n: "108", l: "Ambulance" },
+                { n: "112", l: "Emergency" },
+                { n: "101", l: "Fire" },
+                { n: "100", l: "Police" },
+              ].map((x) => (
+                <a
+                  key={x.n}
+                  href={`tel:${x.n}`}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-3 py-3 text-sm font-extrabold text-white ring-1 ring-white/15 transition hover:scale-[1.02] active:scale-95"
+                >
                   <Phone className="h-4 w-4" /> CALL {x.n} · {x.l}
                 </a>
               ))}
@@ -331,9 +410,15 @@ export function EmergencyActive({ category, onClose, userLat, userLon, locationL
                 <option value="hi-IN">हिन्दी</option>
                 <option value="pa-IN">ਪੰਜਾਬੀ</option>
               </select>
-              <button onClick={() => { stopSpeaking(); speakText(steps.join(". "), selectedLanguage); }} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white hover:bg-white/15">
-                 <Volume2 className="h-3.5 w-3.5" /> Read Aloud
-               </button>
+              <button
+                onClick={() => {
+                  stopSpeaking();
+                  speakText(steps.join(". "), selectedLanguage);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white hover:bg-white/15"
+              >
+                <Volume2 className="h-3.5 w-3.5" /> Read Aloud
+              </button>
             </div>
           </div>
           <ol className="mt-3 space-y-2">

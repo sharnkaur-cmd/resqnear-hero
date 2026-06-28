@@ -165,7 +165,10 @@ function normalizeGuidance(steps: unknown, label: EmergencyTypeLabel): string[] 
   return cleaned;
 }
 
-function parseGeminiResponse(raw: string): { label: EmergencyTypeLabel | null; guidanceSteps: string[] | null } {
+function parseGeminiResponse(raw: string): {
+  label: EmergencyTypeLabel | null;
+  guidanceSteps: string[] | null;
+} {
   const cleaned = raw.replace(/^```json\s*|\s*```$/g, "").trim();
   try {
     const parsed = JSON.parse(cleaned) as { category?: string; guidanceSteps?: string[] };
@@ -179,7 +182,8 @@ function parseGeminiResponse(raw: string): { label: EmergencyTypeLabel | null; g
       guidanceSteps: Array.isArray(parsed.guidanceSteps) ? parsed.guidanceSteps : null,
     };
   } catch {
-    const label = EMERGENCY_TYPE_LABELS.find((t) => cleaned.toLowerCase().includes(t.toLowerCase())) ?? null;
+    const label =
+      EMERGENCY_TYPE_LABELS.find((t) => cleaned.toLowerCase().includes(t.toLowerCase())) ?? null;
     return { label, guidanceSteps: null };
   }
 }

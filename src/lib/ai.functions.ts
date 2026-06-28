@@ -64,7 +64,10 @@ Never use 911. Always use 112 for India.`;
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: [
-            { role: "system", content: "You are an emergency response AI for India. Return only valid JSON." },
+            {
+              role: "system",
+              content: "You are an emergency response AI for India. Return only valid JSON.",
+            },
             { role: "user", content: prompt },
           ],
           response_format: { type: "json_object" },
@@ -103,7 +106,7 @@ export const textToSpeech = createServerFn({ method: "POST" })
 
     try {
       console.log("Calling Gemini TTS with:", { text: data.text, lang });
-      
+
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateSpeech?key=${GEMINI_API_KEY}`,
         {
@@ -114,7 +117,7 @@ export const textToSpeech = createServerFn({ method: "POST" })
             voice: { languageCode: "en-IN", name: "en-IN-Wavenet-C" },
             audioConfig: { audioEncoding: "MP3" },
           }),
-        }
+        },
       );
 
       console.log("Gemini TTS response status:", res.status, res.statusText);
@@ -128,10 +131,10 @@ export const textToSpeech = createServerFn({ method: "POST" })
 
       const j = await res.json();
       console.log("Gemini TTS response keys:", Object.keys(j));
-      
+
       // Check for audioContent in the response
       const audioContent = j.audioContent || j.data?.audioContent;
-      
+
       if (!audioContent) {
         console.error("Gemini TTS full response (no audioContent):", JSON.stringify(j));
         throw new Error("No audio data in response");

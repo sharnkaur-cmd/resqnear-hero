@@ -20,7 +20,9 @@ export function GpsIndicator({
         <Loader2 className="h-4 w-4 shrink-0 animate-spin text-info" />
         <div className="min-w-0">
           <p className="font-semibold">Locking GPS…</p>
-          <p className="text-xs text-muted-foreground">Reaching for high-accuracy fix · target {threshold} m</p>
+          <p className="text-xs text-muted-foreground">
+            Reaching for high-accuracy fix · target {threshold} m
+          </p>
         </div>
       </div>
     );
@@ -40,12 +42,16 @@ export function GpsIndicator({
             <span className="min-w-0 text-left">
               {locationLabel ?? "Resolving your area…"}
               <span className="block text-[10px] opacity-80">
-                Accuracy ±{Math.round(state.accuracy)} m {accurate ? "· high precision" : "· approximate"}
+                Accuracy ±{Math.round(state.accuracy)} m{" "}
+                {accurate ? "· high precision" : "· approximate"}
               </span>
             </span>
           </p>
         </div>
-        <button onClick={onRetry} className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-white">
+        <button
+          onClick={onRetry}
+          className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-white"
+        >
           Refresh
         </button>
       </div>
@@ -56,7 +62,10 @@ export function GpsIndicator({
     <div className="animate-fade-up flex items-center gap-3 rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm">
       <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
       <p className="min-w-0 flex-1 text-warning">{state.message}</p>
-      <button onClick={onRetry} className="shrink-0 rounded-lg bg-warning/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-warning">
+      <button
+        onClick={onRetry}
+        className="shrink-0 rounded-lg bg-warning/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-warning"
+      >
         Retry
       </button>
     </div>

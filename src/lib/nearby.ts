@@ -37,7 +37,9 @@ function metersToDegrees(meters: number, lat: number) {
 // Build 3-5 nearby heroes around user with realistic offsets, distances, ETAs.
 // First entry is the "matched" hero (closest).
 export const findNearbyDoctors = createServerFn({ method: "POST" })
-  .validator((input: unknown) => input as { lat: number; lon: number; radius?: number; limit?: number })
+  .validator(
+    (input: unknown) => input as { lat: number; lon: number; radius?: number; limit?: number },
+  )
   .handler(async ({ data }): Promise<NearbyHero[]> => {
     const key = process.env.GOOGLE_MAPS_API_KEY;
     if (!key || !Number.isFinite(data.lat) || !Number.isFinite(data.lon)) {
@@ -111,9 +113,7 @@ export function buildNearbyHeroes(
 
   return picks.map((h, idx) => {
     // Place matched hero ~120-400m away; others 300m-1.5km
-    const meters = idx === 0
-      ? 120 + Math.random() * 280
-      : 300 + Math.random() * 1200;
+    const meters = idx === 0 ? 120 + Math.random() * 280 : 300 + Math.random() * 1200;
     const angle = Math.random() * Math.PI * 2;
     const { dLat, dLon } = metersToDegrees(meters, userLat);
     const lat = userLat + dLat * Math.sin(angle);

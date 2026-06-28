@@ -12,20 +12,23 @@ export async function registerServiceWorker() {
     inIframe ||
     host.startsWith("id-preview--") ||
     host.startsWith("preview--") ||
-    host === "lovableproject.com" || host.endsWith(".lovableproject.com") ||
-    host === "lovableproject-dev.com" || host.endsWith(".lovableproject-dev.com") ||
-    host === "beta.lovable.dev" || host.endsWith(".beta.lovable.dev") ||
+    host === "lovableproject.com" ||
+    host.endsWith(".lovableproject.com") ||
+    host === "lovableproject-dev.com" ||
+    host.endsWith(".lovableproject-dev.com") ||
+    host === "beta.lovable.dev" ||
+    host.endsWith(".beta.lovable.dev") ||
     url.searchParams.get("sw") === "off";
 
   if (blocked) {
     try {
       const regs = await navigator.serviceWorker.getRegistrations();
       await Promise.all(
-        regs
-          .filter((r) => r.active?.scriptURL?.endsWith("/sw.js"))
-          .map((r) => r.unregister()),
+        regs.filter((r) => r.active?.scriptURL?.endsWith("/sw.js")).map((r) => r.unregister()),
       );
-    } catch {}
+    } catch (error) {
+      console.warn("Service worker cleanup failed", error);
+    }
     return;
   }
 

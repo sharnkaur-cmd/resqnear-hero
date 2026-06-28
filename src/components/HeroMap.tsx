@@ -18,7 +18,9 @@ export function HeroMap(props: HeroMapProps) {
   const cls = props.className ?? "h-72";
   if (!mounted) {
     return (
-      <div className={`grid w-full place-items-center rounded-2xl glass-card text-xs text-muted-foreground ${cls}`}>
+      <div
+        className={`grid w-full place-items-center rounded-2xl glass-card text-xs text-muted-foreground ${cls}`}
+      >
         Locating heroes near you…
       </div>
     );
@@ -26,7 +28,9 @@ export function HeroMap(props: HeroMapProps) {
   return (
     <Suspense
       fallback={
-        <div className={`grid w-full place-items-center rounded-2xl glass-card text-xs text-muted-foreground ${cls}`}>
+        <div
+          className={`grid w-full place-items-center rounded-2xl glass-card text-xs text-muted-foreground ${cls}`}
+        >
           Loading live map…
         </div>
       }

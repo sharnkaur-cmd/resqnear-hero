@@ -78,7 +78,8 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
   useEffect(() => {
     let cancelled = false;
     setLoadingAi(true);
-    analyze({ data: { type: category.title, location: hero.area + ", Bengaluru" } })
+    const loc = userLat && userLon ? `${userLat.toFixed(4)}°, ${userLon.toFixed(4)}°` : "India";
+    analyze({ data: { type: category.title, location: loc } })
       .then((r) => {
         if (cancelled) return;
         setAnalysis(r);

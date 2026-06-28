@@ -52,6 +52,7 @@ function RegisterPage() {
     name: "", phone: "", skill: "Doctor", locality: "", pincode: "", available: true,
   });
 
+  const [savedName, setSavedName] = useState("");
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -59,9 +60,10 @@ function RegisterPage() {
     try {
       const { error: dbError } = await saveHero(form);
       if (dbError) throw dbError;
+      setSavedName(form.name);
       setSubmitted(true);
       setForm({ name: "", phone: "", skill: "Doctor", locality: "", pincode: "", available: true });
-      setTimeout(() => setSubmitted(false), 4500);
+      setTimeout(() => setSubmitted(false), 6000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not save right now.";
       setError(msg);

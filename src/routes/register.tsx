@@ -111,20 +111,7 @@ function RegisterPage() {
           <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Priya Sharma" className={inputCls} />
         </Field>
         <Field label="Phone Number">
-          <div className="flex items-center rounded-xl border border-white/10 bg-white/5 px-4 py-3 gap-2 focus-within:border-white/30 focus-within:ring-2 focus-within:ring-[#E94560]/40">
-  <span className="text-sm font-bold text-white/60 select-none">+91</span>
-  <span className="text-white/30">|</span>
-  <input
-    required
-    type="tel"
-    pattern="[0-9]{10}"
-    maxLength={10}
-    value={form.phone}
-    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-    placeholder="98765 43210"
-    className="w-full bg-transparent text-sm text-white placeholder:text-muted-foreground outline-none"
-  />
-</div>
+          <input required type="tel" pattern="[0-9+\s]{10,15}" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+91 98xxx xxxxx" className={inputCls} />
         </Field>
         <Field label="Skill">
           <select value={form.skill} onChange={(e) => setForm({ ...form, skill: e.target.value })} className={inputCls}>
@@ -185,6 +172,7 @@ function RegisterPage() {
           </div>
         </>
       )}
+      
     </main>
   );
 }

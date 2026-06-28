@@ -14,6 +14,7 @@ type Props = {
   onClose: () => void;
   userLat?: number;
   userLon?: number;
+  locationLabel?: string;
 };
 
 function formatTime(s: number) {
@@ -29,7 +30,7 @@ const SEVERITY_TINT: Record<string, string> = {
   Low: "bg-gradient-teal text-[#0F0F1A]",
 };
 
-export function EmergencyActive({ category, onClose, userLat, userLon }: Props) {
+export function EmergencyActive({ category, onClose, userLat, userLon, locationLabel }: Props) {
   const [seconds, setSeconds] = useState(120);
   const [elapsed, setElapsed] = useState(0);
   const heroRef = useRef<Hero>(useMemo(() => pickRandomHero(), []));
@@ -78,7 +79,7 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
   useEffect(() => {
     let cancelled = false;
     setLoadingAi(true);
-    const loc = userLat && userLon ? `${userLat.toFixed(4)}°, ${userLon.toFixed(4)}°` : "India";
+    const loc = locationLabel ?? "India";
     analyze({ data: { type: category.title, location: loc } })
       .then((r) => {
         if (cancelled) return;
@@ -96,7 +97,7 @@ export function EmergencyActive({ category, onClose, userLat, userLon }: Props) 
       })
       .catch(() => { if (!cancelled) setLoadingAi(false); });
     return () => { cancelled = true; };
-  }, [analyze, category.title, hero.area, hero.name, userLat, userLon]);
+  }, [analyze, category.title, hero.area, hero.name, locationLabel, userLat, userLon]);
 
   const steps = analysis?.firstAidSteps ?? category.steps;
 

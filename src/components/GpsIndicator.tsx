@@ -1,7 +1,17 @@
 import { CheckCircle2, Loader2, MapPin, AlertTriangle } from "lucide-react";
 import type { GpsState } from "@/hooks/use-gps";
 
-export function GpsIndicator({ state, onRetry, threshold }: { state: GpsState; onRetry: () => void; threshold: number }) {
+export function GpsIndicator({
+  state,
+  onRetry,
+  threshold,
+  locationLabel,
+}: {
+  state: GpsState;
+  onRetry: () => void;
+  threshold: number;
+  locationLabel?: string | null;
+}) {
   if (state.status === "idle") return null;
 
   if (state.status === "requesting") {
@@ -25,8 +35,14 @@ export function GpsIndicator({ state, onRetry, threshold }: { state: GpsState; o
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-success">Location verified</p>
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3" /> Accuracy ±{Math.round(state.accuracy)} m {accurate ? "· high precision" : "· approximate"}
+          <p className="flex items-start gap-1 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <span className="min-w-0 text-left">
+              {locationLabel ?? "Resolving your area…"}
+              <span className="block text-[10px] opacity-80">
+                Accuracy ±{Math.round(state.accuracy)} m {accurate ? "· high precision" : "· approximate"}
+              </span>
+            </span>
           </p>
         </div>
         <button onClick={onRetry} className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-white">

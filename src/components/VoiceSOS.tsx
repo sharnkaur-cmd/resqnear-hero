@@ -1,76 +1,134 @@
 import { useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Languages } from "lucide-react";
+import { Mic, MicOff, Loader2 } from "lucide-react";
 
 type Props = {
-  onTranscript: (text: string, lang: "en-IN" | "hi-IN") => void;
+  onTranscript: (text: string) => void | Promise<void>;
+  busy?: boolean;
 };
 
-// Minimal cross-browser SpeechRecognition typing
-type SRConstructor = new () => {
+type SRResult = {
+  isFinal: boolean;
+  0: { transcript: string };
+};
+
+type SRInstance = {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onresult: ((e: { resultIndex: number; results: ArrayLike<SRResult> }) => void) | null;
   onerror: ((e: { error: string }) => void) | null;
   onend: (() => void) | null;
   start: () => void;
   stop: () => void;
+  abort: () => void;
 };
 
-export function VoiceSOS({ onTranscript }: Props) {
-  const [lang, setLang] = useState<"en-IN" | "hi-IN">("en-IN");
+type SRConstructor = new () => SRInstance;
+
+export function VoiceSOS({ onTranscript, busy = false }: Props) {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const recRef = useRef<InstanceType<SRConstructor> | null>(null);
+  const recRef = useRef<SRInstance | null>(null);
+  const finalTextRef = useRef("");
 
-  useEffect(() => () => { try { recRef.current?.stop(); } catch { /* noop */ } }, []);
+  useEffect(() => {
+    return () => {
+      try {
+        recRef.current?.abort();
+      } catch {
+        /* noop */
+      }
+    };
+  }, []);
 
   function start() {
-    if (typeof window === "undefined") return;
-    const w = window as unknown as { SpeechRecognition?: SRConstructor; webkitSpeechRecognition?: SRConstructor };
+    if (typeof window === "undefined" || busy) return;
+
+    const w = window as unknown as {
+      SpeechRecognition?: SRConstructor;
+      webkitSpeechRecognition?: SRConstructor;
+    };
     const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (!Ctor) { setError("Voice not supported on this browser."); return; }
+    if (!Ctor) {
+      setError("Voice not supported on this browser.");
+      return;
+    }
+
     setError(null);
     setTranscript("");
+    finalTextRef.current = "";
+
     const rec = new Ctor();
-    rec.lang = lang;
+    rec.lang = "en-IN";
     rec.continuous = false;
     rec.interimResults = true;
+
     rec.onresult = (e) => {
-      let t = "";
-      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
-      setTranscript(t);
+      let interim = "";
+      let finalChunk = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const piece = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalChunk += piece;
+        else interim += piece;
+      }
+      if (finalChunk) finalTextRef.current = `${finalTextRef.current}${finalChunk}`.trim();
+      setTranscript(finalTextRef.current || interim);
     };
-    rec.onerror = (e) => { setError(e.error || "Mic error"); setListening(false); };
+
+    rec.onerror = (e) => {
+      if (e.error !== "aborted") setError(e.error || "Mic error");
+      setListening(false);
+    };
+
     rec.onend = () => {
       setListening(false);
-      setTranscript((t) => { if (t.trim()) onTranscript(t.trim(), lang); return t; });
+      const text = finalTextRef.current.trim();
+      if (text) void onTranscript(text);
     };
+
     recRef.current = rec;
-    try { rec.start(); setListening(true); } catch { setListening(false); }
+    try {
+      rec.start();
+      setListening(true);
+    } catch {
+      setError("Could not start microphone.");
+      setListening(false);
+    }
   }
 
-  function stop() { try { recRef.current?.stop(); } catch { /* noop */ } setListening(false); }
+  function stop() {
+    try {
+      recRef.current?.stop();
+    } catch {
+      /* noop */
+    }
+    setListening(false);
+  }
+
+  const disabled = busy;
 
   return (
     <div className="w-full max-w-sm">
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center">
         <button
           onClick={listening ? stop : start}
+          disabled={disabled}
           aria-label={listening ? "Stop voice SOS" : "Speak emergency"}
-          className={`group flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition active:scale-95 ${
-            listening ? "bg-[#E94560] text-white shadow-glow-red animate-pulse-soft" : "glass glass-hover text-white"
+          className={`group flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
+            listening
+              ? "bg-[#E94560] text-white shadow-glow-red animate-pulse-soft"
+              : "glass glass-hover text-white"
           }`}
         >
-          {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          {listening ? "Listening…" : "Voice SOS"}
-        </button>
-        <button
-          onClick={() => setLang((l) => (l === "en-IN" ? "hi-IN" : "en-IN"))}
-          className="flex items-center gap-1 rounded-full glass px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white/85"
-        >
-          <Languages className="h-3.5 w-3.5" /> {lang === "en-IN" ? "EN" : "हिं"}
+          {busy ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : listening ? (
+            <MicOff className="h-4 w-4" />
+          ) : (
+            <Mic className="h-4 w-4" />
+          )}
+          {busy ? "Classifying…" : listening ? "Listening…" : "Voice SOS"}
         </button>
       </div>
       {transcript && (

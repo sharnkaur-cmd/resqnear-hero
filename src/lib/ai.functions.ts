@@ -32,10 +32,7 @@ function fallback(type: string): EmergencyAnalysis {
 }
 
 export const analyzeEmergency = createServerFn({ method: "POST" })
-  .inputValidator(
-    (input: unknown) =>
-      input as { type: string; location?: string },
-  )
+  .validator((input: unknown) => input as { type: string; location?: string })
   .handler(async ({ data }): Promise<EmergencyAnalysis> => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) return fallback(data.type);

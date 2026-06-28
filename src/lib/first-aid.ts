@@ -75,7 +75,7 @@ export const AID_CATEGORIES: AidCategory[] = [
   {
     id: "choking",
     title: "Choking",
-    emoji: "😮",
+    emoji: "🫁",
     color: "from-emerald-500 to-teal-600",
     steps: [
       "Ask 'Are you choking?' If they cannot speak, act immediately.",

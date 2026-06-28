@@ -135,13 +135,17 @@ function RegisterPage() {
       {submitted && (
         <>
           <Confetti />
-          <div className="animate-fade-up fixed inset-x-0 bottom-6 z-50 mx-auto w-[92%] max-w-md rounded-2xl bg-success p-4 text-[#0F0F1A] shadow-glow-green">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-6 w-6" />
-              <div>
-                <div className="font-extrabold">You're a Hero now 🎉</div>
-                <div className="text-xs opacity-80">We'll alert you when someone nearby needs help.</div>
+          <div className="fixed inset-0 z-50 grid place-items-center bg-[#0F0F1A]/80 backdrop-blur-md p-4">
+            <div className="animate-fade-up w-full max-w-sm rounded-3xl glass-card p-8 text-center">
+              <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-gradient-blue-violet text-5xl font-black text-white shadow-glow-blue ring-4 ring-white/15">
+                {(savedName.trim()[0] || "H").toUpperCase()}
               </div>
+              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-success ring-1 ring-success/40">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Verified Hero
+              </div>
+              <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-white">Welcome, {savedName.split(" ")[0] || "Hero"} 🎉</h2>
+              <p className="mt-1 text-sm text-muted-foreground">You're now part of India's 24/7 hero network. We'll alert you when someone nearby needs help.</p>
+              <button onClick={() => setSubmitted(false)} className="mt-5 w-full rounded-2xl bg-gradient-blue-violet px-5 py-3 text-sm font-extrabold uppercase tracking-widest text-white shadow-glow-blue">Continue</button>
             </div>
           </div>
         </>

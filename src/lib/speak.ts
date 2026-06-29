@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+// Web Speech API helper
 
 let speechSynthUtterance: SpeechSynthesisUtterance | null = null;
 let voices: SpeechSynthesisVoice[] = [];
@@ -25,7 +25,6 @@ export function speakText(text: string, lang: string = "en-US"): void {
     // Check if Web Speech API is supported
     if (typeof window === "undefined" || !window.speechSynthesis) {
       console.error("Speech synthesis not supported");
-      toast.error("Audio not available");
       return;
     }
 
@@ -63,17 +62,21 @@ export function speakText(text: string, lang: string = "en-US"): void {
       speechSynthUtterance = null;
     };
 
-    utterance.onerror = (e) => {
-      console.error("✗ Speech error:", e);
+    utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
+      // Ignore benign errors caused by cancel()/new utterance starting
+      const benign = ["interrupted", "canceled", "cancelled"];
+      if (e.error && benign.includes(e.error)) {
+        speechSynthUtterance = null;
+        return;
+      }
+      console.error("✗ Speech error:", e.error || e);
       speechSynthUtterance = null;
-      toast.error("Audio not available");
     };
 
     window.speechSynthesis.speak(utterance);
     console.log("✓ speechSynthesis.speak() called");
   } catch (e) {
     console.error("✗ Audio failed:", e);
-    toast.error("Audio not available");
     speechSynthUtterance = null;
   }
 }

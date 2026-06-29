@@ -119,15 +119,17 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
     const recognition = new Ctor();
     recognition.lang = "en-US";
     recognition.continuous = false;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
       let finalChunk = "";
 
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const result = event.results[index];
-        const piece = result.transcript || "";
-        if (result.isFinal) {
+        const alternative = result[0];
+        const piece = alternative?.transcript || "";
+        if (result.isFinal && piece) {
           finalChunk += piece;
         }
       }
@@ -137,6 +139,9 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
         const combined = finalTranscriptRef.current.trim();
         if (combined && combined !== lastTranscriptRef.current) {
           lastTranscriptRef.current = combined;
+          if (typeof console !== "undefined") {
+            console.info("[VoiceSOS] transcript:", combined);
+          }
           if (onTranscript) {
             void onTranscript(combined);
           }

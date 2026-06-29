@@ -3,8 +3,8 @@ import type { HeroMapProps } from "./HeroMap";
 
 export default function HeroMapInner({ userLat, userLon, nearby, className }: HeroMapProps) {
   const center: [number, number] = [
-    Number.isFinite(userLat) ? userLat : 12.9352,
-    Number.isFinite(userLon) ? userLon : 77.6245,
+    Number.isFinite(userLat) ? (userLat as number) : 12.9352,
+    Number.isFinite(userLon) ? (userLon as number) : 77.6245,
   ];
   const safeNearby = nearby.filter(
     (item) => Number.isFinite(item?.lat) && Number.isFinite(item?.lon),

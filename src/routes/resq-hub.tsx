@@ -213,6 +213,7 @@ function ResQHubPage() {
   const [emergencyType, setEmergencyType] = useState("Cardiac");
   const [selectedLanguage, setSelectedLanguage] = useState("en-US");
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
 
   useEffect(() => {
     const backup = localStorage.getItem("medical_profile_backup");
@@ -385,10 +386,30 @@ function ResQHubPage() {
     );
   }
 
-  function speakCourse(title: string, steps: string[]) {
+  function speakCourse(id: string, title: string, steps: string[]) {
+    if (speakingId === id) {
+      stopSpeaking();
+      setSpeakingId(null);
+      return;
+    }
     const text = `${title}. ${steps.join(". ")}`;
     stopSpeaking();
+    setSpeakingId(id);
     speakText(text, selectedLanguage);
+
+    // Poll to detect when speech ends so we can clear the active state
+    const checkInterval = window.setInterval(() => {
+      if (!window.speechSynthesis || !window.speechSynthesis.speaking) {
+        setSpeakingId((current) => (current === id ? null : current));
+        window.clearInterval(checkInterval);
+      }
+    }, 300);
+
+    // Safety cleanup after a generous max duration
+    window.setTimeout(() => {
+      window.clearInterval(checkInterval);
+      setSpeakingId((current) => (current === id ? null : current));
+    }, 60000);
   }
 
   function completeCourse(id: string) {
@@ -754,8 +775,8 @@ function ResQHubPage() {
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-bold">{course.title}</p>
                   <button
-                    onClick={() => speakCourse(course.title, course.steps)}
-                    className="grid h-9 w-9 place-items-center rounded-xl bg-white/10"
+                    onClick={() => speakCourse(course.id, course.title, course.steps)}
+                    className={`grid h-9 w-9 place-items-center rounded-xl transition ${speakingId === course.id ? "bg-[#4cc9f0] text-[#0F0F1A] animate-pulse" : "bg-white/10"}`}
                   >
                     <Volume2 className="h-4 w-4" />
                   </button>

@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showSpeechError } from "@/services/speech";
 
+type SpeechRecognitionAlternativeLike = {
+  transcript: string;
+  confidence?: number;
+};
+
+type SpeechRecognitionResultLike = ArrayLike<SpeechRecognitionAlternativeLike> & {
+  isFinal: boolean;
+};
+
 type SpeechRecognitionEventLike = {
   resultIndex: number;
-  results: ArrayLike<{
-    isFinal: boolean;
-    transcript: string;
-  }>;
+  results: ArrayLike<SpeechRecognitionResultLike>;
 };
 
 type SpeechRecognitionErrorLike = {
@@ -17,9 +23,11 @@ type SpeechRecognitionInstanceLike = {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
+  maxAlternatives?: number;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
   onerror: ((event: SpeechRecognitionErrorLike) => void) | null;
   onend: (() => void) | null;
+  onstart?: (() => void) | null;
   start: () => void;
   stop: () => void;
   abort: () => void;

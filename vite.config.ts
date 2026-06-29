@@ -41,7 +41,7 @@ export default defineConfig({
         injectRegister: null,
         filename: "sw.js",
         manifest: false,
-        outDir: ".output/public",
+        outDir: "dist/client",
         includeAssets: ["icon-192.svg", "icon-512.svg", "manifest.webmanifest"],
         devOptions: { enabled: false },
         workbox: {

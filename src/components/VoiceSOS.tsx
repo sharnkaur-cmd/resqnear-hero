@@ -10,41 +10,20 @@ type Props = {
 export function VoiceSOS({ onTranscript, busy = false }: Props) {
   const { listening, supported, error, controller } = useSpeechRecognition(onTranscript);
 
-  const startListening = useCallback(() => {
-    if (busy || listening) return;
-    controller.start();
-  }, [busy, controller, listening]);
-
-  const stopListening = useCallback(() => {
+  const toggle = useCallback(() => {
+    if (busy) return;
     if (listening) controller.stop();
-  }, [controller, listening]);
+    else controller.start();
+  }, [busy, controller, listening]);
 
   return (
     <div className="w-full max-w-sm">
       <div className="flex items-center justify-center">
         <button
-          onPointerDown={startListening}
-          onPointerUp={stopListening}
-          onPointerLeave={stopListening}
-          onPointerCancel={stopListening}
-          onMouseDown={startListening}
-          onMouseUp={stopListening}
-          onMouseLeave={stopListening}
-          onTouchEnd={stopListening}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              startListening();
-            }
-          }}
-          onKeyUp={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              stopListening();
-            }
-          }}
-          onBlur={stopListening}
+          type="button"
+          onClick={toggle}
           disabled={busy}
+          aria-pressed={listening}
           aria-label={listening ? "Stop voice SOS" : "Speak emergency"}
           className={`group flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
             listening

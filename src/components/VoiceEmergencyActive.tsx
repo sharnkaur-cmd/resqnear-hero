@@ -112,7 +112,7 @@ export function VoiceEmergencyActive({
     if (loading || steps.length === 0 || !guidanceText.trim()) return;
     if (guidanceText === lastSpokenGuidanceRef.current) return;
     lastSpokenGuidanceRef.current = guidanceText;
-    speakText(guidanceText, "en-US");
+    setTimeout(() => speakText(guidanceText, "en-US"), 250);
   }, [guidanceText, loading, steps.length]);
 
   return (

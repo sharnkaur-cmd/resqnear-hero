@@ -1,63 +1,176 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showSpeechError } from "@/services/speech";
 
-type SpeechRecognitionAlternativeLike = {
-  transcript: string;
-  confidence?: number;
+const INACTIVITY_TIMEOUT_MS = 10000;
+const TARGET_SAMPLE_RATE = 16000;
+
+type BrowserWindowWithAudio = Window & {
+  AudioContext?: typeof AudioContext;
+  webkitAudioContext?: typeof AudioContext;
 };
 
-type SpeechRecognitionResultLike = ArrayLike<SpeechRecognitionAlternativeLike> & {
-  isFinal: boolean;
-};
-
-type SpeechRecognitionEventLike = {
-  resultIndex: number;
-  results: ArrayLike<SpeechRecognitionResultLike>;
-};
-
-type SpeechRecognitionErrorLike = {
-  error?: string;
-};
-
-type SpeechRecognitionInstanceLike = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives?: number;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorLike) => void) | null;
-  onend: (() => void) | null;
-  onstart?: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-};
-
-type SpeechRecognitionConstructorLike = new () => SpeechRecognitionInstanceLike;
-
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructorLike;
-    webkitSpeechRecognition?: SpeechRecognitionConstructorLike;
-  }
+function getAudioContextCtor() {
+  if (typeof window === "undefined") return null;
+  const audioWindow = window as BrowserWindowWithAudio;
+  return audioWindow.AudioContext || audioWindow.webkitAudioContext || null;
 }
 
-const INACTIVITY_TIMEOUT_MS = 10000;
+function isVoiceCaptureSupported() {
+  return Boolean(
+    typeof window !== "undefined" &&
+      navigator.mediaDevices &&
+      typeof navigator.mediaDevices.getUserMedia === "function" &&
+      getAudioContextCtor(),
+  );
+}
 
-function getSpeechRecognitionCtor() {
-  if (typeof window === "undefined") return null;
-  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+function mergePcmChunks(chunks: Float32Array[]) {
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const merged = new Float32Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return merged;
+}
+
+function downsamplePcm(input: Float32Array, inputRate: number, outputRate: number) {
+  if (outputRate === inputRate) return input;
+  if (outputRate > inputRate) return input;
+
+  const ratio = inputRate / outputRate;
+  const outputLength = Math.max(1, Math.round(input.length / ratio));
+  const output = new Float32Array(outputLength);
+
+  for (let i = 0; i < outputLength; i += 1) {
+    const start = Math.floor(i * ratio);
+    const end = Math.min(input.length, Math.floor((i + 1) * ratio));
+    let sum = 0;
+    let count = 0;
+    for (let j = start; j < end; j += 1) {
+      sum += input[j] ?? 0;
+      count += 1;
+    }
+    output[i] = count > 0 ? sum / count : 0;
+  }
+
+  return output;
+}
+
+function encodeWav(chunks: Float32Array[], inputSampleRate: number) {
+  const pcm = downsamplePcm(mergePcmChunks(chunks), inputSampleRate, TARGET_SAMPLE_RATE);
+  const dataSize = pcm.length * 2;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  const writeString = (offset: number, value: string) => {
+    for (let i = 0; i < value.length; i += 1) view.setUint8(offset + i, value.charCodeAt(i));
+  };
+
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, TARGET_SAMPLE_RATE, true);
+  view.setUint32(28, TARGET_SAMPLE_RATE * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, dataSize, true);
+
+  let offset = 44;
+  for (let i = 0; i < pcm.length; i += 1) {
+    const sample = Math.max(-1, Math.min(1, pcm[i] ?? 0));
+    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+    offset += 2;
+  }
+
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+async function readTranscriptionStream(response: Response) {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    const data = (await response.json().catch(() => null)) as { text?: string } | null;
+    return data?.text?.trim() || "";
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let transcript = "";
+
+  const consumeLine = (line: string) => {
+    if (!line.startsWith("data:")) return;
+    const data = line.slice(5).trim();
+    if (!data || data === "[DONE]") return;
+
+    try {
+      const event = JSON.parse(data) as { type?: string; delta?: string; text?: string };
+      if (event.type === "transcript.text.delta" && event.delta) {
+        transcript += event.delta;
+      }
+      if (event.type === "transcript.text.done" && event.text) {
+        transcript = event.text;
+      }
+      if (!event.type && event.text) {
+        transcript = event.text;
+      }
+    } catch {
+      // Ignore non-JSON keepalive lines.
+    }
+  };
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split(/\r?\n/);
+    buffer = lines.pop() ?? "";
+    for (const line of lines) consumeLine(line);
+  }
+
+  if (buffer) consumeLine(buffer);
+  return transcript.trim();
+}
+
+async function transcribeVoiceRecording(audio: Blob) {
+  const formData = new FormData();
+  formData.append("audio", audio, "voice-sos.wav");
+
+  const response = await fetch("/api/public/voice-transcribe", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => "Voice transcription failed.");
+    throw new Error(message || "Voice transcription failed.");
+  }
+
+  return readTranscriptionStream(response);
 }
 
 export function useSpeechRecognition(onTranscript?: (text: string) => void | Promise<void>) {
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognitionInstanceLike | null>(null);
-  const finalTranscriptRef = useRef("");
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
+  const chunksRef = useRef<Float32Array[]>([]);
+  const sampleRateRef = useRef(TARGET_SAMPLE_RATE);
   const lastTranscriptRef = useRef("");
   const inactivityTimerRef = useRef<number | null>(null);
   const listeningRef = useRef(false);
+  const recordingRef = useRef(false);
+  const finishingRef = useRef(false);
+  const finishRecordingRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     listeningRef.current = listening;
@@ -66,37 +179,104 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimerRef.current) window.clearTimeout(inactivityTimerRef.current);
     inactivityTimerRef.current = window.setTimeout(() => {
-      if (recognitionRef.current && listeningRef.current) {
-        recognitionRef.current.stop();
+      if (recordingRef.current && listeningRef.current) {
+        void finishRecordingRef.current?.();
       }
     }, INACTIVITY_TIMEOUT_MS);
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
 
-  const stopRecognition = useCallback(() => {
-    try {
-      recognitionRef.current?.stop();
-    } catch {
-      // noop
-    }
+  const stopTracksAndNodes = useCallback(() => {
+    processorRef.current?.disconnect();
+    sourceRef.current?.disconnect();
+    gainRef.current?.disconnect();
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+
+    processorRef.current = null;
+    sourceRef.current = null;
+    gainRef.current = null;
+    streamRef.current = null;
+  }, []);
+
+  const clearInactivityTimer = useCallback(() => {
     if (inactivityTimerRef.current) {
       window.clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
     }
-    setListening(false);
   }, []);
 
-  const clearTranscript = useCallback(() => {
-    finalTranscriptRef.current = "";
-    lastTranscriptRef.current = "";
-  }, []);
+  const abortRecording = useCallback(() => {
+    recordingRef.current = false;
+    finishingRef.current = false;
+    clearInactivityTimer();
+    stopTracksAndNodes();
+    void audioContextRef.current?.close().catch(() => undefined);
+    audioContextRef.current = null;
+    chunksRef.current = [];
+    setListening(false);
+  }, [clearInactivityTimer, stopTracksAndNodes]);
+
+  const finishRecording = useCallback(async () => {
+    if (finishingRef.current) return;
+    if (!recordingRef.current) {
+      setListening(false);
+      return;
+    }
+
+    finishingRef.current = true;
+    recordingRef.current = false;
+    clearInactivityTimer();
+
+    const chunks = chunksRef.current;
+    const sampleRate = sampleRateRef.current;
+    chunksRef.current = [];
+
+    stopTracksAndNodes();
+    const audioContext = audioContextRef.current;
+    audioContextRef.current = null;
+    await audioContext?.close().catch(() => undefined);
+
+    try {
+      const audio = encodeWav(chunks, sampleRate);
+      if (audio.size < 2048 || chunks.length === 0) {
+        throw new Error("No speech detected. Please try again.");
+      }
+
+      const transcript = (await transcribeVoiceRecording(audio)).trim();
+      if (!transcript) {
+        throw new Error("No speech detected. Please try again.");
+      }
+
+      if (transcript !== lastTranscriptRef.current) {
+        lastTranscriptRef.current = transcript;
+        if (typeof console !== "undefined") {
+          console.info("[VoiceSOS] transcript:", transcript);
+        }
+        if (onTranscript) await onTranscript(transcript);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to process speech right now.";
+      setError(message);
+      showSpeechError(message);
+    } finally {
+      finishingRef.current = false;
+      setListening(false);
+    }
+  }, [clearInactivityTimer, onTranscript, stopTracksAndNodes]);
+
+  useEffect(() => {
+    finishRecordingRef.current = finishRecording;
+  }, [finishRecording]);
+
+  const stopRecognition = useCallback(() => {
+    void finishRecording();
+  }, [finishRecording]);
 
   const startRecognition = useCallback(() => {
-    if (typeof window === "undefined" || listeningRef.current) return;
+    if (typeof window === "undefined" || listeningRef.current || recordingRef.current) return;
 
-    const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) {
+    if (!isVoiceCaptureSupported()) {
       const message = "Speech recognition is not supported in this browser.";
       setError(message);
       showSpeechError(message);
@@ -114,92 +294,66 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
 
     setSupported(true);
     clearError();
-    clearTranscript();
 
-    const recognition = new Ctor();
-    recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: {
+          autoGainControl: true,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      })
+      .then(async (stream) => {
+        const AudioContextCtor = getAudioContextCtor();
+        if (!AudioContextCtor) throw new Error("Speech recognition is not supported in this browser.");
+        const audioContext = new AudioContextCtor();
+        await audioContext.resume().catch(() => undefined);
 
-    recognition.onresult = (event) => {
-      let finalChunk = "";
+        const source = audioContext.createMediaStreamSource(stream);
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        const gain = audioContext.createGain();
+        gain.gain.value = 0;
 
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        const result = event.results[index];
-        const alternative = result[0];
-        const piece = alternative?.transcript || "";
-        if (result.isFinal && piece) {
-          finalChunk += piece;
-        }
-      }
+        chunksRef.current = [];
+        sampleRateRef.current = audioContext.sampleRate;
+        streamRef.current = stream;
+        audioContextRef.current = audioContext;
+        sourceRef.current = source;
+        processorRef.current = processor;
+        gainRef.current = gain;
 
-      if (finalChunk) {
-        finalTranscriptRef.current = `${finalTranscriptRef.current} ${finalChunk}`.trim();
-        const combined = finalTranscriptRef.current.trim();
-        if (combined && combined !== lastTranscriptRef.current) {
-          lastTranscriptRef.current = combined;
-          if (typeof console !== "undefined") {
-            console.info("[VoiceSOS] transcript:", combined);
-          }
-          if (onTranscript) {
-            void onTranscript(combined);
-          }
-        }
-      }
+        processor.onaudioprocess = (event: AudioProcessingEvent) => {
+          if (!recordingRef.current) return;
+          const channel = event.inputBuffer.getChannelData(0);
+          chunksRef.current.push(new Float32Array(channel));
+        };
 
-      resetInactivityTimer();
-    };
+        source.connect(processor);
+        processor.connect(gain);
+        gain.connect(audioContext.destination);
 
-    recognition.onerror = (event) => {
-      const message = event.error || "speech-error";
+        recordingRef.current = true;
+        setListening(true);
+        resetInactivityTimer();
+      })
+      .catch((err) => {
+        const message = err instanceof DOMException ? err.name : "Could not start microphone.";
       setError(message);
       showSpeechError(message);
-      recognitionRef.current = null;
+        stopTracksAndNodes();
       setListening(false);
-    };
-
-    recognition.onend = () => {
-      if (inactivityTimerRef.current) {
-        window.clearTimeout(inactivityTimerRef.current);
-        inactivityTimerRef.current = null;
-      }
-      recognitionRef.current = null;
-      setListening(false);
-    };
-
-    recognitionRef.current = recognition;
-
-    try {
-      recognition.start();
-      setListening(true);
-      resetInactivityTimer();
-    } catch {
-      const message = "Could not start microphone.";
-      setError(message);
-      showSpeechError(message);
-      recognitionRef.current = null;
-      setListening(false);
-    }
-  }, [clearError, clearTranscript, onTranscript, resetInactivityTimer]);
+      });
+  }, [clearError, resetInactivityTimer, stopTracksAndNodes]);
 
   useEffect(() => {
     return () => {
-      stopRecognition();
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
-      if (inactivityTimerRef.current) {
-        window.clearTimeout(inactivityTimerRef.current);
-        inactivityTimerRef.current = null;
-      }
+      abortRecording();
     };
-  }, [stopRecognition]);
+  }, [abortRecording]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const Ctor = getSpeechRecognitionCtor();
-    setSupported(Boolean(Ctor));
+    setSupported(isVoiceCaptureSupported());
   }, []);
 
   const controller = useMemo(

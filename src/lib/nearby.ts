@@ -42,7 +42,13 @@ export const findNearbyDoctors = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<NearbyHero[]> => {
     const key = process.env.GOOGLE_MAPS_API_KEY;
-    if (!key || !Number.isFinite(data.lat) || !Number.isFinite(data.lon)) {
+    if (
+      !key ||
+      !Number.isFinite(data.lat) ||
+      !Number.isFinite(data.lon) ||
+      Math.abs(data.lat) < 0.0001 ||
+      Math.abs(data.lon) < 0.0001
+    ) {
       return [];
     }
 

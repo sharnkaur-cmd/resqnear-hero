@@ -64,7 +64,7 @@ export function speakText(text: string, lang: string = "en-US"): void {
 
     utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
       // Ignore benign errors caused by cancel()/new utterance starting
-      const benign = ["interrupted", "canceled", "cancelled"];
+      const benign = ["interrupted", "canceled", "cancelled", "synthesis-failed"];
       if (e.error && benign.includes(e.error)) {
         speechSynthUtterance = null;
         return;

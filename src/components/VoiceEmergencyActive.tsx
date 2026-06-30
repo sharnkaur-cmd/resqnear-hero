@@ -53,6 +53,7 @@ export function VoiceEmergencyActive({
   const [liveNearby, setLiveNearby] = useState<NearbyHero[]>([]);
   const escalated = secondsLeft === 0;
   const heroRef = useRef<Hero>(useMemo(() => pickRandomHero(), []));
+  const lastSpokenGuidanceRef = useRef("");
   const hero = heroRef.current;
   const userLatSafe = userLat ?? 12.9352;
   const userLonSafe = userLon ?? 77.6245;
@@ -104,13 +105,15 @@ export function VoiceEmergencyActive({
     return () => clearInterval(timer);
   }, [loading]);
 
-  const steps = guidanceSteps.slice(0, 5);
+  const steps = useMemo(() => guidanceSteps.slice(0, 5), [guidanceSteps]);
+  const guidanceText = useMemo(() => [category.title, ...steps].join(" "), [category.title, steps]);
 
   useEffect(() => {
-    if (loading || steps.length === 0) return;
-    const text = [category.title, ...steps].join(" ");
-    speakText(text, "en-US");
-  }, [category.title, loading, steps]);
+    if (loading || steps.length === 0 || !guidanceText.trim()) return;
+    if (guidanceText === lastSpokenGuidanceRef.current) return;
+    lastSpokenGuidanceRef.current = guidanceText;
+    setTimeout(() => speakText(guidanceText, "en-US"), 250);
+  }, [guidanceText, loading, steps.length]);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0F0F1A] text-white">

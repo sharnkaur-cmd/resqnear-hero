@@ -4,12 +4,22 @@ import { showSpeechError } from "@/services/speech";
 const INACTIVITY_TIMEOUT_MS = 10000;
 const TARGET_SAMPLE_RATE = 16000;
 
+type BrowserWindowWithAudio = Window & {
+  webkitAudioContext?: typeof AudioContext;
+};
+
+function getAudioContextCtor() {
+  if (typeof window === "undefined") return null;
+  const audioWindow = window as BrowserWindowWithAudio;
+  return audioWindow.AudioContext || audioWindow.webkitAudioContext || null;
+}
+
 function isVoiceCaptureSupported() {
   return Boolean(
     typeof window !== "undefined" &&
       navigator.mediaDevices &&
       typeof navigator.mediaDevices.getUserMedia === "function" &&
-      typeof window.AudioContext === "function",
+      getAudioContextCtor(),
   );
 }
 
@@ -293,7 +303,9 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
         },
       })
       .then(async (stream) => {
-        const audioContext = new AudioContext();
+        const AudioContextCtor = getAudioContextCtor();
+        if (!AudioContextCtor) throw new Error("Speech recognition is not supported in this browser.");
+        const audioContext = new AudioContextCtor();
         await audioContext.resume().catch(() => undefined);
 
         const source = audioContext.createMediaStreamSource(stream);

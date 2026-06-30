@@ -15,6 +15,7 @@ import { Route as HeroesRouteImport } from './routes/heroes'
 import { Route as FirstAidRouteImport } from './routes/first-aid'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicVoiceTranscribeRouteImport } from './routes/api.public.voice-transcribe'
 
 const ResqHubRoute = ResqHubRouteImport.update({
   id: '/resq-hub',
@@ -46,6 +47,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicVoiceTranscribeRoute =
+  ApiPublicVoiceTranscribeRouteImport.update({
+    id: '/api/public/voice-transcribe',
+    path: '/api/public/voice-transcribe',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/heroes': typeof HeroesRoute
   '/register': typeof RegisterRoute
   '/resq-hub': typeof ResqHubRoute
+  '/api/public/voice-transcribe': typeof ApiPublicVoiceTranscribeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/heroes': typeof HeroesRoute
   '/register': typeof RegisterRoute
   '/resq-hub': typeof ResqHubRoute
+  '/api/public/voice-transcribe': typeof ApiPublicVoiceTranscribeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/heroes': typeof HeroesRoute
   '/register': typeof RegisterRoute
   '/resq-hub': typeof ResqHubRoute
+  '/api/public/voice-transcribe': typeof ApiPublicVoiceTranscribeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,8 +91,16 @@ export interface FileRouteTypes {
     | '/heroes'
     | '/register'
     | '/resq-hub'
+    | '/api/public/voice-transcribe'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/first-aid' | '/heroes' | '/register' | '/resq-hub'
+  to:
+    | '/'
+    | '/demo'
+    | '/first-aid'
+    | '/heroes'
+    | '/register'
+    | '/resq-hub'
+    | '/api/public/voice-transcribe'
   id:
     | '__root__'
     | '/'
@@ -91,6 +109,7 @@ export interface FileRouteTypes {
     | '/heroes'
     | '/register'
     | '/resq-hub'
+    | '/api/public/voice-transcribe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -100,6 +119,7 @@ export interface RootRouteChildren {
   HeroesRoute: typeof HeroesRoute
   RegisterRoute: typeof RegisterRoute
   ResqHubRoute: typeof ResqHubRoute
+  ApiPublicVoiceTranscribeRoute: typeof ApiPublicVoiceTranscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -146,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/voice-transcribe': {
+      id: '/api/public/voice-transcribe'
+      path: '/api/public/voice-transcribe'
+      fullPath: '/api/public/voice-transcribe'
+      preLoaderRoute: typeof ApiPublicVoiceTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -156,17 +183,8 @@ const rootRouteChildren: RootRouteChildren = {
   HeroesRoute: HeroesRoute,
   RegisterRoute: RegisterRoute,
   ResqHubRoute: ResqHubRoute,
+  ApiPublicVoiceTranscribeRoute: ApiPublicVoiceTranscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

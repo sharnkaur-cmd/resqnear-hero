@@ -159,6 +159,7 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
   const listeningRef = useRef(false);
   const recordingRef = useRef(false);
   const finishingRef = useRef(false);
+  const finishRecordingRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     listeningRef.current = listening;
@@ -168,7 +169,7 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
     if (inactivityTimerRef.current) window.clearTimeout(inactivityTimerRef.current);
     inactivityTimerRef.current = window.setTimeout(() => {
       if (recordingRef.current && listeningRef.current) {
-        void finishRecording();
+        void finishRecordingRef.current?.();
       }
     }, INACTIVITY_TIMEOUT_MS);
   }, []);
@@ -252,6 +253,10 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
       setListening(false);
     }
   }, [clearInactivityTimer, onTranscript, stopTracksAndNodes]);
+
+  useEffect(() => {
+    finishRecordingRef.current = finishRecording;
+  }, [finishRecording]);
 
   const stopRecognition = useCallback(() => {
     void finishRecording();

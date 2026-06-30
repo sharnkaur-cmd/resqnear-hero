@@ -5,6 +5,7 @@ const INACTIVITY_TIMEOUT_MS = 10000;
 const TARGET_SAMPLE_RATE = 16000;
 
 type BrowserWindowWithAudio = Window & {
+  AudioContext?: typeof AudioContext;
   webkitAudioContext?: typeof AudioContext;
 };
 
@@ -321,7 +322,7 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
         processorRef.current = processor;
         gainRef.current = gain;
 
-        processor.onaudioprocess = (event) => {
+        processor.onaudioprocess = (event: AudioProcessingEvent) => {
           if (!recordingRef.current) return;
           const channel = event.inputBuffer.getChannelData(0);
           chunksRef.current.push(new Float32Array(channel));

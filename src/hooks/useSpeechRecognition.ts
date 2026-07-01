@@ -337,6 +337,8 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
       processorRef.current = processor;
       gainRef.current = gain;
 
+      recordingRef.current = true;
+
       processor.onaudioprocess = (event: AudioProcessingEvent) => {
         if (!recordingRef.current) return;
         const channel = event.inputBuffer.getChannelData(0);
@@ -347,9 +349,10 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
       processor.connect(gain);
       gain.connect(audioContext.destination);
 
-      recordingRef.current = true;
       setListening(true);
       resetInactivityTimer();
+      if (typeof console !== "undefined") console.info("[VoiceSOS] listening…");
+
     } catch (err) {
       let message = "Could not start microphone. Please try again.";
       if (err instanceof DOMException) {

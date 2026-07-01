@@ -13,6 +13,14 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
   const matched = safeNearby[0];
   const others = safeNearby.slice(1);
 
+  function Recenter({ center }: { center: [number, number] }) {
+    const map = useMap();
+    useEffect(() => {
+      map.setView(center, map.getZoom(), { animate: true });
+    }, [center[0], center[1]]);
+    return null;
+  }
+
   return (
     <div
       className={`relative w-full overflow-hidden rounded-2xl border border-white/10 ${className ?? "h-72"}`}

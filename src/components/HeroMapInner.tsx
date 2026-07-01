@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, CircleMarker, Circle, Tooltip } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, CircleMarker, Circle, Tooltip, useMap } from "react-leaflet";
 import type { HeroMapProps } from "./HeroMap";
 
 export default function HeroMapInner({ userLat, userLon, nearby, className }: HeroMapProps) {
@@ -11,6 +12,14 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
   );
   const matched = safeNearby[0];
   const others = safeNearby.slice(1);
+
+  function Recenter({ center }: { center: [number, number] }) {
+    const map = useMap();
+    useEffect(() => {
+      map.setView(center, map.getZoom(), { animate: true });
+    }, [center[0], center[1]]);
+    return null;
+  }
 
   return (
     <div
@@ -25,6 +34,8 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
         style={{ height: "100%", width: "100%", background: "#0F0F1A" }}
       >
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+        <Recenter center={center} />
+
 
         {/* Pulsing search rings around user */}
         <Circle

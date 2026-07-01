@@ -273,11 +273,11 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
     void finishRecording();
   }, [finishRecording]);
 
-  const startRecognition = useCallback(() => {
+  const startRecognition = useCallback(async () => {
     if (typeof window === "undefined" || listeningRef.current || recordingRef.current) return;
 
     if (!isVoiceCaptureSupported()) {
-      const message = "Speech recognition is not supported in this browser.";
+      const message = "Voice input isn't supported in this browser. Please use the SOS button.";
       setError(message);
       showSpeechError(message);
       setSupported(false);
@@ -285,64 +285,89 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void | Pro
     }
 
     if (!window.isSecureContext) {
-      const message = "Use HTTPS or localhost for microphone access.";
+      const message = "Microphone requires HTTPS. Please use the SOS button.";
       setError(message);
       showSpeechError(message);
       setSupported(false);
       return;
     }
 
+    // Proactive permission check — surface a clear message before we prompt.
+    try {
+      const status = await (navigator.permissions?.query?.({
+        name: "microphone" as PermissionName,
+      }) as Promise<PermissionStatus> | undefined);
+      if (status && status.state === "denied") {
+        const message = "Microphone is blocked. Enable it in your browser settings and retry.";
+        setError(message);
+        showSpeechError(message);
+        return;
+      }
+    } catch {
+      // Safari/older browsers don't support permissions.query for microphone — continue.
+    }
+
     setSupported(true);
     clearError();
 
-    navigator.mediaDevices
-      .getUserMedia({
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           autoGainControl: true,
           echoCancellation: true,
           noiseSuppression: true,
         },
-      })
-      .then(async (stream) => {
-        const AudioContextCtor = getAudioContextCtor();
-        if (!AudioContextCtor) throw new Error("Speech recognition is not supported in this browser.");
-        const audioContext = new AudioContextCtor();
-        await audioContext.resume().catch(() => undefined);
+      });
 
-        const source = audioContext.createMediaStreamSource(stream);
-        const processor = audioContext.createScriptProcessor(4096, 1, 1);
-        const gain = audioContext.createGain();
-        gain.gain.value = 0;
+      const AudioContextCtor = getAudioContextCtor();
+      if (!AudioContextCtor) throw new Error("Voice input isn't supported in this browser.");
+      const audioContext = new AudioContextCtor();
+      await audioContext.resume().catch(() => undefined);
 
-        chunksRef.current = [];
-        sampleRateRef.current = audioContext.sampleRate;
-        streamRef.current = stream;
-        audioContextRef.current = audioContext;
-        sourceRef.current = source;
-        processorRef.current = processor;
-        gainRef.current = gain;
+      const source = audioContext.createMediaStreamSource(stream);
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      const gain = audioContext.createGain();
+      gain.gain.value = 0;
 
-        processor.onaudioprocess = (event: AudioProcessingEvent) => {
-          if (!recordingRef.current) return;
-          const channel = event.inputBuffer.getChannelData(0);
-          chunksRef.current.push(new Float32Array(channel));
-        };
+      chunksRef.current = [];
+      sampleRateRef.current = audioContext.sampleRate;
+      streamRef.current = stream;
+      audioContextRef.current = audioContext;
+      sourceRef.current = source;
+      processorRef.current = processor;
+      gainRef.current = gain;
 
-        source.connect(processor);
-        processor.connect(gain);
-        gain.connect(audioContext.destination);
+      processor.onaudioprocess = (event: AudioProcessingEvent) => {
+        if (!recordingRef.current) return;
+        const channel = event.inputBuffer.getChannelData(0);
+        chunksRef.current.push(new Float32Array(channel));
+      };
 
-        recordingRef.current = true;
-        setListening(true);
-        resetInactivityTimer();
-      })
-      .catch((err) => {
-        const message = err instanceof DOMException ? err.name : "Could not start microphone.";
+      source.connect(processor);
+      processor.connect(gain);
+      gain.connect(audioContext.destination);
+
+      recordingRef.current = true;
+      setListening(true);
+      resetInactivityTimer();
+    } catch (err) {
+      let message = "Could not start microphone. Please try again.";
+      if (err instanceof DOMException) {
+        if (err.name === "NotAllowedError" || err.name === "SecurityError") {
+          message = "Microphone permission denied. Enable it in your browser settings.";
+        } else if (err.name === "NotFoundError" || err.name === "OverconstrainedError") {
+          message = "No microphone found on this device.";
+        } else if (err.name === "NotReadableError" || err.name === "AbortError") {
+          message = "Microphone is in use by another app. Close it and retry.";
+        }
+      } else if (err instanceof Error && err.message) {
+        message = err.message;
+      }
       setError(message);
       showSpeechError(message);
-        stopTracksAndNodes();
+      stopTracksAndNodes();
       setListening(false);
-      });
+    }
   }, [clearError, resetInactivityTimer, stopTracksAndNodes]);
 
   useEffect(() => {

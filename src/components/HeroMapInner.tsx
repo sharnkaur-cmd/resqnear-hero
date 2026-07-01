@@ -34,6 +34,8 @@ export default function HeroMapInner({ userLat, userLon, nearby, className }: He
         style={{ height: "100%", width: "100%", background: "#0F0F1A" }}
       >
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+        <Recenter center={center} />
+
 
         {/* Pulsing search rings around user */}
         <Circle

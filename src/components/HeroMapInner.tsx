@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, CircleMarker, Circle, Tooltip } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, CircleMarker, Circle, Tooltip, useMap } from "react-leaflet";
 import type { HeroMapProps } from "./HeroMap";
 
 export default function HeroMapInner({ userLat, userLon, nearby, className }: HeroMapProps) {
